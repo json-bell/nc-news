@@ -38,19 +38,13 @@ describe("GET /api/topics", () => {
   });
 });
 
-describe("GET /api/topics", () => {
-  test("200: returns an array of all topics", () => {
+describe("Invalid endpoint returns 404 and message indicating URL was not found", () => {
+  test("If given a not present endpoint, returns a 404 error with appropriate message", () => {
     return request(app)
-      .get("/api/topics")
-      .expect(200)
-      .then(({ body: { topics } }) => {
-        expect(topics.length).toBe(3);
-        topics.forEach((topic) => {
-          expect(topic).toMatchObject({
-            slug: expect.any(String),
-            description: expect.any(String),
-          });
-        });
+      .get("/api/banana")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Endpoint not found");
       });
   });
 });
