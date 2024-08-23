@@ -4,7 +4,11 @@ After cloning the repo, to successfully connect to the databases locally you wil
 
 Make a `.env.development` file with contents `PGDATABASE=nc_news` to get access to the running database.
 
-Make a `.env.test` file with contents `PGDATABASE=nc_news_test` to get access to the testing database, which is used when running `npm run test` which tests all the endpoints.
+Make a `.env.test` file with contents `PGDATABASE=nc_news_test` to get access to the testing database, which is used when running `npm run test` which tests all the endpoints once setup is finished.
+
+You can then install the dependencies with `npm install`.
+
+To initialise the databases, run `npm run setup-dbs`. Seeding the development database can then be done with `npm run setup-dbs`.
 
 ---
 
