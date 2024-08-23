@@ -1,6 +1,5 @@
 exports.throwEndpointNotFound = (req, res, next) => {
-  if (true) res.status(404).send({ msg: "Endpoint not found" });
-  else next(err);
+  res.status(404).send({ msg: "Endpoint not found" });
 };
 
 exports.handleErrorDefault = (err, req, res, next) => {
