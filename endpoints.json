@@ -61,8 +61,12 @@
     }
   },
   "POST /api/articles/:article_id/comments": {
-    "description": "adds a comment to the specified article",
+    "description": "adds a comment to the specified article if given the author and body",
     "queries": [],
+    "examplePayload": {
+      "username": "biglover",
+      "body": "This is amazing"
+    },
     "exampleResponse": {
       "comment": {
         "username": "biglover",
@@ -70,6 +74,25 @@
         "commend_id": 14,
         "article_id": 9,
         "votes": 0
+      }
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "updates a specified article's vote count",
+    "queries": [],
+    "examplePayload": {
+      "inc_votes": 19
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 25,
+        "title": "Sweet potato & butternut squash soup with lemon & garlic toast",
+        "topic": "cooking",
+        "author": "weegembump",
+        "body": "Roast your vegetables in honey before blitzing into this velvety smooth, spiced soup - served with garlicky, zesty ciabatta slices for dipping",
+        "created_at": "2020-03-11T21:16:00.000Z",
+        "votes": 19,
+        "article_img_url": "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700"
       }
     }
   }

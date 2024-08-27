@@ -10,31 +10,35 @@ beforeEach(() => seed(data));
 afterAll(() => db.end());
 
 describe("/api", () => {
-  test("GET 200: returns all available endpoints", () => {
-    return request(app)
-      .get("/api")
-      .expect(200)
-      .then(({ body }) => {
-        const endpoints = require("../endpoints.json");
-        expect(body).toEqual(endpoints);
-      });
+  describe("GET", () => {
+    test("GET 200: returns all available endpoints", () => {
+      return request(app)
+        .get("/api")
+        .expect(200)
+        .then(({ body }) => {
+          const endpoints = require("../endpoints.json");
+          expect(body).toEqual(endpoints);
+        });
+    });
   });
 });
 
 describe("/api/topics", () => {
-  test("GET 200: returns an array of all topics", () => {
-    return request(app)
-      .get("/api/topics")
-      .expect(200)
-      .then(({ body: { topics } }) => {
-        expect(topics.length).toBe(3);
-        topics.forEach((topic) => {
-          expect(topic).toMatchObject({
-            slug: expect.any(String),
-            description: expect.any(String),
+  describe("GET", () => {
+    test("GET 200: returns an array of all topics", () => {
+      return request(app)
+        .get("/api/topics")
+        .expect(200)
+        .then(({ body: { topics } }) => {
+          expect(topics.length).toBe(3);
+          topics.forEach((topic) => {
+            expect(topic).toMatchObject({
+              slug: expect.any(String),
+              description: expect.any(String),
+            });
           });
         });
-      });
+    });
   });
 });
 
@@ -123,6 +127,111 @@ describe("/api/articles/:article_id", () => {
     test("GET 400: returns Bad Request message if id is invalid", () => {
       return request(app)
         .get("/api/articles/dog")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+  });
+  describe("PATCH", () => {
+    test("PATCH 200: responds with updated article", () => {
+      return request(app)
+        .patch("/api/articles/13")
+        .send({ inc_votes: 6 })
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article).toMatchObject({
+            article_id: 13,
+            title: "Another article about Mitch",
+            topic: "mitch",
+            author: "butter_bridge",
+            body: "There will never be enough articles about Mitch!",
+            created_at: "2020-10-11T11:24:00.000Z",
+            votes: 6,
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          });
+        });
+    });
+    test("PATCH 200: correctly increases vote count", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send({ inc_votes: 6 })
+        .expect(200)
+        .then(() => {
+          return request(app)
+            .get("/api/articles/1")
+            .expect(200)
+            .then(({ body: { article } }) => {
+              expect(article).toMatchObject({
+                article_id: 1,
+                title: "Living in the shadow of a great man",
+                topic: "mitch",
+                author: "butter_bridge",
+                body: "I find this existence challenging",
+                created_at: "2020-07-09T20:11:00.000Z",
+                votes: 106,
+                article_img_url:
+                  "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+              });
+            });
+        });
+    });
+    test("PATCH 200: correctly decreases vote count", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send({ inc_votes: -25 })
+        .expect(200)
+        .then(() => {
+          return request(app)
+            .get("/api/articles/1")
+            .expect(200)
+            .then(({ body: { article } }) => {
+              expect(article).toMatchObject({
+                article_id: 1,
+                title: "Living in the shadow of a great man",
+                topic: "mitch",
+                author: "butter_bridge",
+                body: "I find this existence challenging",
+                created_at: "2020-07-09T20:11:00.000Z",
+                votes: 75,
+                article_img_url:
+                  "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+              });
+            });
+        });
+    });
+    test("PATCH 404: responds not found if id is valid but not present", () => {
+      request(app)
+        .patch("/api/articles/8000")
+        .send({ inc_votes: 6 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Resource not found");
+        });
+    });
+    test("PATCH 400: responds bad request if id is invalid", () => {
+      request(app)
+        .patch("/api/articles/banana")
+        .send({ inc_votes: 6 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("PATCH 400: responds bad request if no inc_votes key in payload", () => {
+      request(app)
+        .patch("/api/articles/3")
+        .send({ not_good_key: 6 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("PATCH 400: responds bad request if inc_votes isn't an integer", () => {
+      request(app)
+        .patch("/api/articles/3")
+        .send({ inc_votes: "seven yay" })
         .expect(400)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad request");
