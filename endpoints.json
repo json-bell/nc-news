@@ -59,5 +59,18 @@
         ]
       }
     }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "adds a comment to the specified article",
+    "queries": [],
+    "exampleResponse": {
+      "comment": {
+        "username": "biglover",
+        "body": "This is amazing",
+        "commend_id": 14,
+        "article_id": 9,
+        "votes": 0
+      }
+    }
   }
 }

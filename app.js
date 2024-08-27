@@ -10,11 +10,18 @@ const { getApiInfo } = require("./controllers/api-controller");
 const {
   getArticleById,
   getArticle,
-  getCommentsByArticle,
 } = require("./controllers/articles-controller");
+const {
+  getCommentsByArticle,
+  postComment,
+} = require("./controllers/comments-controller");
+
+//
 
 const app = express();
 module.exports = app;
+
+app.use(express.json());
 
 app.get("/api", getApiInfo);
 
@@ -25,6 +32,8 @@ app.get("/api/articles", getArticle);
 app.get("/api/articles/:article_id", getArticleById);
 
 app.get("/api/articles/:article_id/comments", getCommentsByArticle);
+
+app.post("/api/articles/:article_id/comments", postComment);
 
 app.use(throwEndpointNotFound);
 
