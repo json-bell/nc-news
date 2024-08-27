@@ -11,6 +11,8 @@ exports.handleCustomError = (err, req, res, next) => {
 exports.handleSqlError = (err, req, res, next) => {
   if (err.code === "22P02")
     res.status(400).send({ msg: "Bad request", code: 400 });
+  else if (err.code === "23503")
+    res.status(404).send({ msg: "Resource not found", code: 404 });
   else next(err);
 };
 

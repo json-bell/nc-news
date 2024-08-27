@@ -225,7 +225,19 @@ describe("/api/articles/:article_id/comments", () => {
           });
       });
   });
-  test.todo("POST 404: article id not found");
+  test("POST 404: article id not found", () => {
+    const payload = {
+      username: "rogersop",
+      body: "This is amazing",
+    };
+    return request(app)
+      .post("/api/articles/8080/comments")
+      .send(payload)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found");
+      });
+  });
   test.todo("POST 400: article id invalid");
   test.todo("POST 400: provided body doesn't contain a valid username or body");
 });
