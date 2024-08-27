@@ -38,6 +38,41 @@ describe("/api/topics", () => {
   });
 });
 
+describe("/api/articles", () => {
+  test.skip("GET 200: finds all articles", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(13);
+        articles.forEach(() => {
+          expect(articles).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number),
+          });
+        });
+      });
+  });
+  test.skip("GET 200: articles do not have a body property", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(13);
+        articles.forEach(() => {
+          expect(articles.hasOwnProperty(body)).toBe(false);
+        });
+      });
+  });
+  test.todo("GET 200: articles sort by date in descending order by default");
+});
+
 describe("/api/articles/:article_id", () => {
   test("200: finds article by its id", () => {
     return request(app)
