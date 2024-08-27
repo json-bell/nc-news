@@ -225,7 +225,7 @@ describe("/api/articles/:article_id/comments", () => {
           });
       });
   });
-  test("POST 404: article id not found", () => {
+  test("POST 404: if article id not found returns error", () => {
     const payload = {
       username: "rogersop",
       body: "This is amazing",
@@ -238,7 +238,26 @@ describe("/api/articles/:article_id/comments", () => {
         expect(msg).toBe("Resource not found");
       });
   });
-  test("POST 400: article id invalid", () => {
+  test("POST 404: if user not found, errors and doesn't insert a comment", () => {
+    const payload = {
+      username: "this-is-not-a-user_:(",
+      body: "This is not very amazing",
+    };
+    return request(app)
+      .post("/api/articles/13/comments")
+      .send(payload)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found");
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles/13/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => expect(comments.length).toBe(0));
+      });
+  });
+  test("POST 400: errors if article id invalid", () => {
     const payload = {
       username: "rogersop",
       body: "This is amazing",
@@ -251,7 +270,32 @@ describe("/api/articles/:article_id/comments", () => {
         expect(msg).toBe("Bad request");
       });
   });
-  test.todo("POST 400: provided body doesn't contain a valid username or body");
+  test("POST 400: errors if provided body doesn't contain a username or body key", () => {
+    const payload = {
+      username: "rogersop",
+      incorrect_key: "This is definitely a comment",
+    };
+    return request(app)
+      .post("/api/articles/banana/comments")
+      .send(payload)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+  test("POST 400: errors if body is not a string", () => {
+    const payload = {
+      username: "rogersop",
+      body: 11111111111111,
+    };
+    return request(app)
+      .post("/api/articles/banana/comments")
+      .send(payload)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
 });
 
 describe("Invalid endpoint returns 404 and message indicating URL was not found", () => {
