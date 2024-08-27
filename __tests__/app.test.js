@@ -162,15 +162,15 @@ describe("/api/articles/:article_id/comments", () => {
         expect(comments).toBeSortedBy("created_at", { descending: true });
       });
   });
-  test.skip("404: returns Not Found message if article id is valid but not present", () => {
+  test("404: returns Not Found message if article id is valid but not present", () => {
     return request(app)
       .get("/api/articles/8080/comments")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Article not found");
+        expect(msg).toBe("Not found");
       });
   });
-  test.skip("400: returns Bad Request message if article id is invalid", () => {
+  test("400: returns Bad Request message if article id is invalid", () => {
     return request(app)
       .get("/api/articles/dog/comments")
       .expect(400)
