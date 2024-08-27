@@ -32,7 +32,7 @@ exports.selectArticleById = (article_id) => {
     )
     .then(({ rows }) => {
       if (rows.length === 0) {
-        return Promise.reject({ msg: "Article not found", code: 404 });
+        return Promise.reject({ msg: "Resource not found", code: 404 });
       }
       return rows[0];
     });

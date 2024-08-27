@@ -114,7 +114,7 @@ describe("/api/articles/:article_id", () => {
       .get("/api/articles/8080")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Article not found");
+        expect(msg).toBe("Resource not found");
       });
   });
   test("400: returns Bad Request message if id is invalid", () => {
@@ -167,7 +167,7 @@ describe("/api/articles/:article_id/comments", () => {
       .get("/api/articles/8080/comments")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Not found");
+        expect(msg).toBe("Resource not found");
       });
   });
   test("400: returns Bad Request message if article id is invalid", () => {
