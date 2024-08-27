@@ -238,7 +238,19 @@ describe("/api/articles/:article_id/comments", () => {
         expect(msg).toBe("Resource not found");
       });
   });
-  test.todo("POST 400: article id invalid");
+  test("POST 400: article id invalid", () => {
+    const payload = {
+      username: "rogersop",
+      body: "This is amazing",
+    };
+    return request(app)
+      .post("/api/articles/banana/comments")
+      .send(payload)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
   test.todo("POST 400: provided body doesn't contain a valid username or body");
 });
 
