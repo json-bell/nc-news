@@ -39,7 +39,7 @@ describe("/api/topics", () => {
 });
 
 describe("/api/articles", () => {
-  test.skip("GET 200: finds all articles", () => {
+  test("GET 200: finds all articles", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
@@ -59,12 +59,14 @@ describe("/api/articles", () => {
         });
       });
   });
-  test.skip("GET 200: counts comments on articles", () => {
+  test("GET 200: counts comments on articles", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles[0].comment_count).toBe(11);
+        expect(
+          articles.find((article) => article.article_id === 1).comment_count
+        ).toBe(11);
       });
   });
   test("GET 200: articles do not have a body property", () => {
