@@ -45,8 +45,8 @@ describe("/api/articles", () => {
       .expect(200)
       .then(({ body: { articles } }) => {
         expect(articles.length).toBe(13);
-        articles.forEach(() => {
-          expect(articles).toMatchObject({
+        articles.forEach((article) => {
+          expect(article).toMatchObject({
             author: expect.any(String),
             title: expect.any(String),
             article_id: expect.any(Number),
@@ -59,14 +59,22 @@ describe("/api/articles", () => {
         });
       });
   });
-  test.skip("GET 200: articles do not have a body property", () => {
+  test.skip("GET 200: counts comments on articles", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles[0].comment_count).toBe(11);
+      });
+  });
+  test("GET 200: articles do not have a body property", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
         expect(articles.length).toBe(13);
-        articles.forEach(() => {
-          expect(articles.hasOwnProperty(body)).toBe(false);
+        articles.forEach((article) => {
+          expect(article.hasOwnProperty("body")).toBe(false);
         });
       });
   });
