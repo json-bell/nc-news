@@ -25,5 +25,23 @@
         }
       ]
     }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "finds an article according to its id",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+        "article": {
+          "article_id": 25,
+          "title": "Sweet potato & butternut squash soup with lemon & garlic toast",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Roast your vegetables in honey before blitzing into this velvety smooth, spiced soup - served with garlicky, zesty ciabatta slices for dipping",
+          "created_at": "2020-03-11T21:16:00.000Z",
+          "votes": 0,
+          "article_img_url": "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700"
+        }
+      }
+    }
   }
 }
