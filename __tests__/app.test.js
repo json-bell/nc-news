@@ -127,7 +127,7 @@ describe("/api/articles/:article_id", () => {
   });
 });
 
-describe("/api/articles/:article_id", () => {
+describe("/api/articles/:article_id/comments", () => {
   test("200: responds with an empty array if the article has no comments", () => {
     return request(app)
       .get("/api/articles/8/comments")
@@ -154,7 +154,14 @@ describe("/api/articles/:article_id", () => {
         });
       });
   });
-  test.skip("comments are sorted with most recent comments first", () => {});
+  test("200: comments are sorted with most recent comments first", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeSortedBy("created_at", { descending: true });
+      });
+  });
   test.skip("404: returns Not Found message if article id is valid but not present", () => {
     return request(app)
       .get("/api/articles/8080/comments")
