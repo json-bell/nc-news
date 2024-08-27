@@ -201,6 +201,17 @@ describe("/api/articles/:article_id", () => {
             });
         });
     });
+    test("PATCH 404: responds not found if id is valid but not present", () => {
+      request(app)
+        .patch("/api/articles/8000")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Resource not found");
+        });
+    });
+    test.todo("PATCH 400: responds bad request if id is invalid");
+    test.todo("PATCH 400: responds bad request if no inc_votes key in payload");
+    test.todo("PATCH 400: responds bad request if inc_votes isn't an integer");
   });
 });
 
