@@ -204,14 +204,39 @@ describe("/api/articles/:article_id", () => {
     test("PATCH 404: responds not found if id is valid but not present", () => {
       request(app)
         .patch("/api/articles/8000")
+        .send({ inc_votes: 6 })
         .expect(404)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Resource not found");
         });
     });
-    test.todo("PATCH 400: responds bad request if id is invalid");
-    test.todo("PATCH 400: responds bad request if no inc_votes key in payload");
-    test.todo("PATCH 400: responds bad request if inc_votes isn't an integer");
+    test("PATCH 400: responds bad request if id is invalid", () => {
+      request(app)
+        .patch("/api/articles/banana")
+        .send({ inc_votes: 6 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("PATCH 400: responds bad request if no inc_votes key in payload", () => {
+      request(app)
+        .patch("/api/articles/3")
+        .send({ not_good_key: 6 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("PATCH 400: responds bad request if inc_votes isn't an integer", () => {
+      request(app)
+        .patch("/api/articles/3")
+        .send({ inc_votes: "seven yay" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
   });
 });
 
