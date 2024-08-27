@@ -14,3 +14,15 @@ exports.selectCommentsByArticle = (article_id) => {
     )
     .then(({ rows }) => rows);
 };
+
+exports.insertComment = (article_id, { username, body }) => {
+  return db
+    .query(
+      `INSERT INTO comments (author,body,article_id,votes)
+    VALUES
+      ($1,$2,$3,$4)
+    RETURNING *`,
+      [username, body, article_id, 0]
+    )
+    .then(({ rows }) => rows[0]);
+};

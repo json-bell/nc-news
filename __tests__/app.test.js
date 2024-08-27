@@ -178,9 +178,9 @@ describe("/api/articles/:article_id/comments", () => {
         expect(msg).toBe("Bad request");
       });
   });
-  test.skip("POST 201: responds with the newly added comment", () => {
+  test("POST 201: responds with the newly added comment", () => {
     const payload = {
-      username: "biglover",
+      username: "rogersop",
       body: "This is amazing",
     };
     return request(app)
@@ -189,15 +189,42 @@ describe("/api/articles/:article_id/comments", () => {
       .expect(201)
       .then(({ body: { comment } }) => {
         expect(comment).toMatchObject({
-          username: "biglover",
+          author: "rogersop",
           body: "This is amazing",
-          commend_id: expect.any(Number),
+          comment_id: expect.any(Number),
           article_id: 9,
           votes: 0,
         });
       });
   });
-  test.todo("POST 201: adds the newly added comment to the comment list");
+  test("POST 201: adds the newly added comment to the comment list", () => {
+    const payload = {
+      username: "rogersop",
+      body: "This is amazing",
+    };
+    return request(app)
+      .post("/api/articles/9/comments")
+      .send(payload)
+      .expect(201)
+      .then(({ body: { comment: newComment } }) => {
+        return request(app)
+          .get("/api/articles/9/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(
+              comments.find(
+                (comment) => comment.comment_id === newComment.comment_id
+              )
+            ).toMatchObject({
+              author: "rogersop",
+              body: "This is amazing",
+              comment_id: expect.any(Number),
+              article_id: 9,
+              votes: 0,
+            });
+          });
+      });
+  });
   test.todo("POST 404: article id not found");
   test.todo("POST 400: article id invalid");
   test.todo("POST 400: provided body doesn't contain a valid username or body");
