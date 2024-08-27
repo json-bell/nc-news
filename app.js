@@ -10,6 +10,7 @@ const { getApiInfo } = require("./controllers/api-controller");
 const {
   getArticleById,
   getArticle,
+  patchArticle,
 } = require("./controllers/articles-controller");
 const {
   getCommentsByArticle,
@@ -29,11 +30,13 @@ app.get("/api/topics", getTopics);
 
 app.get("/api/articles", getArticle);
 
-app.get("/api/articles/:article_id", getArticleById);
+app
+  .get("/api/articles/:article_id", getArticleById)
+  .patch("/api/articles/:article_id", patchArticle);
 
-app.get("/api/articles/:article_id/comments", getCommentsByArticle);
-
-app.post("/api/articles/:article_id/comments", postComment);
+app
+  .get("/api/articles/:article_id/comments", getCommentsByArticle)
+  .post("/api/articles/:article_id/comments", postComment);
 
 app.use(throwEndpointNotFound);
 
