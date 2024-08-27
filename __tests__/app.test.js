@@ -80,7 +80,15 @@ describe("/api/articles", () => {
         });
       });
   });
-  test.todo("GET 200: articles sort by date in descending order by default");
+  test("GET 200: articles sort by date in descending order by default", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        console.log(articles);
+        expect(articles).toBeSortedBy("created_at");
+      });
+  });
 });
 
 describe("/api/articles/:article_id", () => {
