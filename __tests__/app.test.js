@@ -114,12 +114,65 @@ describe("/api/articles/:article_id", () => {
       .get("/api/articles/8080")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Article not found");
+        expect(msg).toBe("Resource not found");
       });
   });
   test("400: returns Bad Request message if id is invalid", () => {
     return request(app)
       .get("/api/articles/dog")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
+
+describe("/api/articles/:article_id/comments", () => {
+  test("200: responds with an empty array if the article has no comments", () => {
+    return request(app)
+      .get("/api/articles/8/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
+      });
+  });
+  test("200: finds an article's comments by its id if it has comments", () => {
+    return request(app)
+      .get("/api/articles/3/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments.length).toBe(2);
+        comments.forEach((comment) => {
+          expect(comment).toMatchObject({
+            comment_id: expect.any(Number),
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+            author: expect.any(String),
+            body: expect.any(String),
+            article_id: 3,
+          });
+        });
+      });
+  });
+  test("200: comments are sorted with most recent comments first", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("404: returns Not Found message if article id is valid but not present", () => {
+    return request(app)
+      .get("/api/articles/8080/comments")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found");
+      });
+  });
+  test("400: returns Bad Request message if article id is invalid", () => {
+    return request(app)
+      .get("/api/articles/dog/comments")
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("Bad request");

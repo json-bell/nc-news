@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const { checkExists } = require("./utils");
 
 exports.selectArticles = () => {
   return db
@@ -31,8 +32,21 @@ exports.selectArticleById = (article_id) => {
     )
     .then(({ rows }) => {
       if (rows.length === 0) {
-        return Promise.reject({ msg: "Article not found", code: 404 });
+        return Promise.reject({ msg: "Resource not found", code: 404 });
       }
       return rows[0];
     });
+};
+
+exports.selectCommentsByArticle = (article_id) => {
+  return checkExists("articles", "article_id", article_id)
+    .then(() =>
+      db.query(
+        `SELECT * FROM comments
+      WHERE article_id=$1
+      ORDER BY created_at DESC`,
+        [article_id]
+      )
+    )
+    .then(({ rows }) => rows);
 };
