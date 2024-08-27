@@ -91,7 +91,7 @@ describe("/api/articles", () => {
 });
 
 describe("/api/articles/:article_id", () => {
-  test("200: finds article by its id", () => {
+  test("GET 200: finds article by its id", () => {
     return request(app)
       .get("/api/articles/3")
       .expect(200)
@@ -109,7 +109,7 @@ describe("/api/articles/:article_id", () => {
         });
       });
   });
-  test("404: returns Not Found message if id is valid but not present", () => {
+  test("GET 404: returns Not Found message if id is valid but not present", () => {
     return request(app)
       .get("/api/articles/8080")
       .expect(404)
@@ -117,7 +117,7 @@ describe("/api/articles/:article_id", () => {
         expect(msg).toBe("Resource not found");
       });
   });
-  test("400: returns Bad Request message if id is invalid", () => {
+  test("GET 400: returns Bad Request message if id is invalid", () => {
     return request(app)
       .get("/api/articles/dog")
       .expect(400)
@@ -128,7 +128,7 @@ describe("/api/articles/:article_id", () => {
 });
 
 describe("/api/articles/:article_id/comments", () => {
-  test("200: responds with an empty array if the article has no comments", () => {
+  test("GET 200: responds with an empty array if the article has no comments", () => {
     return request(app)
       .get("/api/articles/8/comments")
       .expect(200)
@@ -136,7 +136,7 @@ describe("/api/articles/:article_id/comments", () => {
         expect(comments).toEqual([]);
       });
   });
-  test("200: finds an article's comments by its id if it has comments", () => {
+  test("GET 200: finds an article's comments by its id if it has comments", () => {
     return request(app)
       .get("/api/articles/3/comments")
       .expect(200)
@@ -154,7 +154,7 @@ describe("/api/articles/:article_id/comments", () => {
         });
       });
   });
-  test("200: comments are sorted with most recent comments first", () => {
+  test("GET 200: comments are sorted with most recent comments first", () => {
     return request(app)
       .get("/api/articles/1/comments")
       .expect(200)
@@ -162,7 +162,7 @@ describe("/api/articles/:article_id/comments", () => {
         expect(comments).toBeSortedBy("created_at", { descending: true });
       });
   });
-  test("404: returns Not Found message if article id is valid but not present", () => {
+  test("GET 404: returns Not Found message if article id is valid but not present", () => {
     return request(app)
       .get("/api/articles/8080/comments")
       .expect(404)
@@ -170,7 +170,7 @@ describe("/api/articles/:article_id/comments", () => {
         expect(msg).toBe("Resource not found");
       });
   });
-  test("400: returns Bad Request message if article id is invalid", () => {
+  test("GET 400: returns Bad Request message if article id is invalid", () => {
     return request(app)
       .get("/api/articles/dog/comments")
       .expect(400)
@@ -178,6 +178,29 @@ describe("/api/articles/:article_id/comments", () => {
         expect(msg).toBe("Bad request");
       });
   });
+  test.skip("POST 201: responds with the newly added comment", () => {
+    const payload = {
+      username: "biglover",
+      body: "This is amazing",
+    };
+    return request(app)
+      .post("/api/articles/9/comments")
+      .send(payload)
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toMatchObject({
+          username: "biglover",
+          body: "This is amazing",
+          commend_id: expect.any(Number),
+          article_id: 9,
+          votes: 0,
+        });
+      });
+  });
+  test.todo("POST 201: adds the newly added comment to the comment list");
+  test.todo("POST 404: article id not found");
+  test.todo("POST 400: article id invalid");
+  test.todo("POST 400: provided body doesn't contain a valid username or body");
 });
 
 describe("Invalid endpoint returns 404 and message indicating URL was not found", () => {
