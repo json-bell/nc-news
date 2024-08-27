@@ -17,7 +17,7 @@ exports.selectArticles = () => {
           ON articles.article_id = comments.article_id
       GROUP BY
           articles.article_id
-      ORDER BY articles.created_at;`
+      ORDER BY articles.created_at DESC;`
     )
     .then(({ rows }) => rows);
 };
