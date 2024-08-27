@@ -10,8 +10,8 @@ const { getApiInfo } = require("./controllers/api-controller");
 const {
   getArticleById,
   getArticle,
-  getCommentsByArticle,
 } = require("./controllers/articles-controller");
+const { getCommentsByArticle } = require("./controllers/comments-controller");
 
 const app = express();
 module.exports = app;
