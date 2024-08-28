@@ -234,6 +234,22 @@ describe("/api/articles/:article_id", () => {
           expect(msg).toBe("Bad request");
         });
     });
+    test("GET 200: includes comment count", () => {
+      return request(app)
+        .get("/api/articles/1")
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article.comment_count).toBe(11);
+        });
+    });
+    test("GET 200: includes 0 when no comments are present", () => {
+      return request(app)
+        .get("/api/articles/2")
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article.comment_count).toBe(0);
+        });
+    });
   });
   describe("PATCH", () => {
     test("PATCH 200: responds with article with updated vote count", () => {

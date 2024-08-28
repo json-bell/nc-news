@@ -1,5 +1,6 @@
 node_modules
 .env.*
+listen-test.js
 
 # sqlfluff & scratchpad
 .sqlfluff
