@@ -15,7 +15,7 @@ exports.checkExists = (table, column, value) => {
 };
 
 exports.getOrder = (order) => {
-  if (order === "asc") return Promise.resolve("ASC");
-  if (order === "desc") return Promise.resolve("DESC");
+  if (order.toLowerCase() === "asc") return Promise.resolve("ASC");
+  if (order.toLowerCase() === "desc") return Promise.resolve("DESC");
   return Promise.reject({ msg: "Bad request", code: 400 });
 };

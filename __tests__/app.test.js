@@ -122,7 +122,7 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("title", { descending: true });
         });
     });
-    test("GET 200: takes a order query, asc sorts by ascending", () => {
+    test("GET 200: takes a order query, desc sorts by descending", () => {
       return request(app)
         .get("/api/articles?order=desc")
         .expect(200)
@@ -131,7 +131,16 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("created_at", { descending: true });
         });
     });
-    test("GET 200: takes a order query, desc sorts by descending", () => {
+    test("GET 200: order query is case insensitive, asc sorts by ascending", () => {
+      return request(app)
+        .get("/api/articles?order=aSC")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+          expect(articles).toBeSortedBy("created_at");
+        });
+    });
+    test("GET 200: takes a order query, asc sorts by ascending", () => {
       return request(app)
         .get("/api/articles?order=asc")
         .expect(200)
@@ -140,7 +149,7 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("created_at");
         });
     });
-    test("GET 200: combines these", () => {
+    test("GET 200: can take both an order and a sort_by query", () => {
       return request(app)
         .get("/api/articles?sort_by=article_id&order=asc")
         .expect(200)
@@ -160,6 +169,31 @@ describe("/api/articles", () => {
         .get("/api/articles?sort_by=not-a-column")
         .expect(400)
         .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
+    test("GET 200: filters topic if given a query", () => {
+      return request(app)
+        .get("/api/articles?topic=mitch")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(12);
+          articles.forEach((article) => {
+            expect(article.topic).toBe("mitch");
+          });
+        });
+    });
+    test("GET 200: returns an empty array for a valid topic with no associated articles", () => {
+      return request(app)
+        .get("/api/articles?topic=paper")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toEqual([]);
+        });
+    });
+    test("GET 404: if given topic that isn't in database responds with a 404", () => {
+      return request(app)
+        .get("/api/articles?topic=bananas")
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
   });
 });
@@ -413,7 +447,7 @@ describe("/api/articles/:article_id", () => {
             });
         });
     });
-    test("PATCH 200: Combines these behaviours", () => {
+    test("PATCH 200: patch can take multiple of the keys of body, title, topic and inc_value", () => {
       return request(app)
         .patch("/api/articles/13")
         .send({
@@ -438,12 +472,12 @@ describe("/api/articles/:article_id", () => {
         });
     });
     // are there any sad paths for title and body? Or can SQL convert everything to a string
-    test("PATCH 400: if given a topic that doesn't exist, responds with a 404", () => {
+    test("PATCH 404: if given a topic that doesn't exist, responds with a 400", () => {
       return request(app)
-        .patch("/api/articles/:article_id")
+        .patch("/api/articles/4")
         .send({ topic: "not-a-topic" })
-        .expect(400)
-        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
   });
 });
