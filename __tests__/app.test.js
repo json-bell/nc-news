@@ -62,6 +62,32 @@ describe("/api/users", () => {
   });
 });
 
+describe("/api/users/:username", () => {
+  describe("GET", () => {
+    test("GET 200: responds with a user object", () => {
+      return request(app)
+        .get("/api/users/rogersop")
+        .expect(200)
+        .then(({ body: { user } }) => {
+          expect(user).toMatchObject({
+            username: "rogersop",
+            name: "paul",
+            avatar_url:
+              "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4",
+          });
+        });
+    });
+    test("GET 404: responds with a 404 if the slug is not present in the database", () => {
+      return request(app)
+        .get("/api/users/banana")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Resource not found");
+        });
+    });
+  });
+});
+
 describe("/api/articles", () => {
   describe("GET", () => {
     test("GET 200: finds all articles", () => {
