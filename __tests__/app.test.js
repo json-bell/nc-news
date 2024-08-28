@@ -122,7 +122,7 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("title", { descending: true });
         });
     });
-    test("GET 200: takes a order query, asc sorts by ascending", () => {
+    test("GET 200: takes a order query, desc sorts by descending", () => {
       return request(app)
         .get("/api/articles?order=desc")
         .expect(200)
@@ -131,7 +131,16 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("created_at", { descending: true });
         });
     });
-    test("GET 200: takes a order query, desc sorts by descending", () => {
+    test("GET 200: order query is case insensitive, asc sorts by ascending", () => {
+      return request(app)
+        .get("/api/articles?order=aSC")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+          expect(articles).toBeSortedBy("created_at");
+        });
+    });
+    test("GET 200: takes a order query, asc sorts by ascending", () => {
       return request(app)
         .get("/api/articles?order=asc")
         .expect(200)
@@ -140,7 +149,7 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("created_at");
         });
     });
-    test("GET 200: combines these", () => {
+    test("GET 200: can take both an order and a sort_by query", () => {
       return request(app)
         .get("/api/articles?sort_by=article_id&order=asc")
         .expect(200)
@@ -438,7 +447,7 @@ describe("/api/articles/:article_id", () => {
             });
         });
     });
-    test("PATCH 200: Combines these behaviours", () => {
+    test("PATCH 200: patch can take multiple of the keys of body, title, topic and inc_value", () => {
       return request(app)
         .patch("/api/articles/13")
         .send({

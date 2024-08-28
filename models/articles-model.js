@@ -84,5 +84,3 @@ exports.updateArticle = (article_id, updates) => {
     .then(([queryStr, queryParams]) => db.query(queryStr, queryParams))
     .then(({ rows }) => rows[0]);
 };
-
-//just refactored this to have diff error
