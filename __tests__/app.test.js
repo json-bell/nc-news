@@ -161,6 +161,31 @@ describe("/api/articles", () => {
         .expect(400)
         .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
     });
+    test("GET 200: filters topic if given a query", () => {
+      return request(app)
+        .get("/api/articles?topic=mitch")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(12);
+          articles.forEach((article) => {
+            expect(article.topic).toBe("mitch");
+          });
+        });
+    });
+    test("GET 200: returns an empty array for a valid topic with no associated articles", () => {
+      return request(app)
+        .get("/api/articles?topic=paper")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toEqual([]);
+        });
+    });
+    test("GET 404: if given topic that isn't in database responds with a 404", () => {
+      return request(app)
+        .get("/api/articles?topic=bananas")
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
   });
 });
 
@@ -438,7 +463,8 @@ describe("/api/articles/:article_id", () => {
         });
     });
     // are there any sad paths for title and body? Or can SQL convert everything to a string
-    test("PATCH 400: if given a topic that doesn't exist, responds with a 404", () => {
+    // Should this be 400 or 404? 404 gives the impression that article wasn't found - better to have variety in the error codes
+    test("PATCH 400: if given a topic that doesn't exist, responds with a 400", () => {
       return request(app)
         .patch("/api/articles/:article_id")
         .send({ topic: "not-a-topic" })

@@ -2,30 +2,38 @@ const db = require("../db/connection");
 const format = require("pg-format");
 const { checkExists, getOrder } = require("./utils");
 
-exports.selectArticles = (sort_by, order) => {
+exports.selectArticles = (sort_by, order, topic) => {
   return getOrder(order)
     .then((queryOrder) => {
+      const queryCheckProms = [];
+      const queryParams = [];
+      if (topic !== undefined) {
+        queryCheckProms.push(checkExists("topics", "slug", topic));
+        queryParams.push(topic);
+      }
       const queryStr = format(
         `SELECT
-      articles.author,
-      articles.title,
-      articles.article_id,
-      articles.topic,
-      articles.created_at,
-      articles.votes,
-      articles.article_img_url,
-      COUNT(comments.comment_id)::INT AS comment_count
-      FROM articles
-      LEFT JOIN comments
-      ON articles.article_id = comments.article_id
-      GROUP BY
-      articles.article_id
-      ORDER BY articles.%I ${queryOrder};`,
+          articles.author,
+          articles.title,
+          articles.article_id,
+          articles.topic,
+          articles.created_at,
+          articles.votes,
+          articles.article_img_url,
+          COUNT(comments.comment_id)::INT AS comment_count
+        FROM articles
+        LEFT JOIN comments
+        ON articles.article_id = comments.article_id
+        ${topic === undefined ? `` : `WHERE articles.topic = $1`}
+        GROUP BY
+          articles.article_id
+        ORDER BY articles.%I ${queryOrder};`,
         sort_by
       );
-      return db.query(queryStr);
+      const queryPromise = db.query(queryStr, queryParams);
+      return Promise.all([queryPromise, ...queryCheckProms]);
     })
-    .then(({ rows }) => rows);
+    .then(([{ rows }]) => rows);
 };
 
 exports.selectArticleById = (article_id) => {
