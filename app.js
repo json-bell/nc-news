@@ -5,19 +5,7 @@ const {
   handleSqlError,
   handleCustomError,
 } = require("./controllers/error-handling-middleware");
-const { getTopics } = require("./controllers/topics-controller");
-const { getApiInfo } = require("./controllers/api-controller");
-const {
-  getArticleById,
-  getArticles,
-  patchArticle,
-} = require("./controllers/articles-controller");
-const {
-  getCommentsByArticle,
-  postComment,
-  deleteComment,
-} = require("./controllers/comments-controller");
-const { getUsers } = require("./controllers/users-controller");
+const apiRouter = require("./routes/api-router");
 
 //
 
@@ -26,25 +14,12 @@ module.exports = app;
 
 app.use(express.json());
 
-app.get("/api", getApiInfo);
-
-app.get("/api/topics", getTopics);
-
-app.get("/api/users", getUsers);
-
-app.get("/api/articles", getArticles);
-
-app
-  .get("/api/articles/:article_id", getArticleById)
-  .patch("/api/articles/:article_id", patchArticle);
-
-app
-  .get("/api/articles/:article_id/comments", getCommentsByArticle)
-  .post("/api/articles/:article_id/comments", postComment);
-
-app.delete("/api/comments/:comment_id", deleteComment);
+app.use("/api", apiRouter);
 
 app.use(throwEndpointNotFound);
+
+// Is it possible to make an "error router" or something to move these into a separate file?
+// with app.use & some "errorRouter" I can't make it work
 
 app.use(handleSqlError);
 
