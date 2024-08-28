@@ -26,3 +26,9 @@ exports.insertComment = (article_id, { username, body }) => {
     )
     .then(({ rows }) => rows[0]);
 };
+
+exports.removeComment = (comment_id) => {
+  return checkExists("comments", "comment_id", comment_id).then(() =>
+    db.query(`DELETE FROM comments WHERE comment_id = $1`, [comment_id])
+  );
+};

@@ -15,6 +15,7 @@ const {
 const {
   getCommentsByArticle,
   postComment,
+  deleteComment,
 } = require("./controllers/comments-controller");
 
 //
@@ -37,6 +38,8 @@ app
 app
   .get("/api/articles/:article_id/comments", getCommentsByArticle)
   .post("/api/articles/:article_id/comments", postComment);
+
+app.delete("/api/comments/:comment_id", deleteComment);
 
 app.use(throwEndpointNotFound);
 

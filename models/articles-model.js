@@ -44,6 +44,7 @@ exports.updateArticle = (article_id, updates) => {
       const queryParams = [article_id];
       const { inc_votes } = updates;
       if (inc_votes !== undefined) {
+        // Is there a better way to do the parametrised query? User created references feel odd
         queryUpdateStrings.push(` votes = votes + $${queryParams.length + 1}`);
         queryParams.push(inc_votes);
       }
