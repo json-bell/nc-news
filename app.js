@@ -18,6 +18,9 @@ app.use("/api", apiRouter);
 
 app.use(throwEndpointNotFound);
 
+// Is it possible to make an "error router" or something to move these into a separate file?
+// with app.use & some "errorRouter" I can't make it work
+
 app.use(handleSqlError);
 
 app.use(handleCustomError);
