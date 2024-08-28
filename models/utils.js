@@ -13,3 +13,9 @@ exports.checkExists = (table, column, value) => {
       return Promise.reject({ code: 404, msg: "Resource not found" });
   });
 };
+
+exports.getOrder = (order) => {
+  if (order === "asc") return Promise.resolve("ASC");
+  if (order === "desc") return Promise.resolve("DESC");
+  return Promise.reject({ msg: "Bad request", code: 400 });
+};

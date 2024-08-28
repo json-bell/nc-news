@@ -5,8 +5,9 @@ const {
   updateArticle,
 } = require("../models/articles-model");
 
-exports.getArticle = (req, res, next) => {
-  selectArticles()
+exports.getArticles = (req, res, next) => {
+  const { sort_by = "created_at", order = "desc" } = req.query;
+  selectArticles(sort_by, order)
     .then((articles) => {
       res.status(200).send({ articles });
     })
