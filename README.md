@@ -10,6 +10,10 @@ You can then install the dependencies with `npm install`.
 
 To initialise the databases, run `npm run setup-dbs`. Seeding the development database can then be done with `npm run setup-dbs`.
 
+<!-- ---
+
+To host the database, you will need a `.env.production` file, with a DATABASE_URL -->
+
 ---
 
 This portfolio project was created as part of a Digital Skills Bootcamp in Software Engineering provided by [Northcoders](https://northcoders.com/)
