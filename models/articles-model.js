@@ -37,15 +37,39 @@ exports.selectArticleById = (article_id) => {
     });
 };
 
-exports.updateArticle = (article_id, inc_votes) => {
-  return db
-    .query(
-      `UPDATE articles
-      SET votes = votes + $1 
-      WHERE article_id = $2
-      RETURNING *`,
-      [inc_votes, article_id]
-    )
+exports.updateArticle = (article_id, updates) => {
+  return checkExists("articles", "article_id", article_id)
+    .then(() => {
+      const queryUpdateStrings = [];
+      const queryParams = [article_id];
+      const { inc_votes } = updates;
+      if (inc_votes !== undefined) {
+        queryUpdateStrings.push(` votes = votes + $${queryParams.length + 1}`);
+        queryParams.push(inc_votes);
+      }
+      const validKeys = ["body", "title", "topic"];
+      for (key of validKeys) {
+        if (updates[key] !== undefined) {
+          /* for topics, I see a couple of ways of checking the topic is alright for the references:
+          Either pass it to SQL and let that throw the error (what I'm currently doing)
+          Or try to do 
+          checkExists("topics","slug",updates.topic)
+          but then we get nested promises, so we'd have to create some "PromiseChecks" promise
+          to then return in a Promise.all,
+          but this would still lead to same outcome (400 for invalid reference)
+          */
+          queryUpdateStrings.push(` ${key} = $${queryParams.length + 1}`);
+          queryParams.push(updates[key]);
+        }
+      }
+      const queryStr =
+        queryUpdateStrings.length === 0
+          ? `SELECT * FROM articles WHERE article_id = $1`
+          : `UPDATE articles SET ` +
+            queryUpdateStrings.join(",") +
+            ` WHERE article_id = $1 RETURNING *;`;
+      return db.query(queryStr, queryParams);
+    })
     .then(({ rows }) => {
       if (rows.length === 0)
         return Promise.reject({ msg: "Resource not found", code: 404 });
