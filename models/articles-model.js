@@ -38,14 +38,22 @@ exports.selectArticleById = (article_id) => {
 };
 
 exports.updateArticle = (article_id, inc_votes) => {
-  return db
-    .query(
-      `UPDATE articles
-      SET votes = votes + $1 
-      WHERE article_id = $2
-      RETURNING *`,
-      [inc_votes, article_id]
-    )
+  return checkExists("articles", "article_id", article_id)
+    .then(() => {
+      const queryUpdateStrings = [];
+      const queryParams = [article_id];
+      if (inc_votes !== undefined) {
+        queryUpdateStrings.push(` votes = votes + $2`);
+        queryParams[1] = inc_votes;
+      }
+      const queryStr =
+        queryUpdateStrings.length === 0
+          ? `SELECT * FROM articles WHERE article_id = $1`
+          : `UPDATE articles SET ` +
+            queryUpdateStrings.join(",") +
+            ` WHERE article_id = $1 RETURNING *;`;
+      return db.query(queryStr, queryParams);
+    })
     .then(({ rows }) => {
       if (rows.length === 0)
         return Promise.reject({ msg: "Resource not found", code: 404 });

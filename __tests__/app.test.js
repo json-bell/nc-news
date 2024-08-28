@@ -202,7 +202,7 @@ describe("/api/articles/:article_id", () => {
         });
     });
     test("PATCH 404: responds not found if id is valid but not present", () => {
-      request(app)
+      return request(app)
         .patch("/api/articles/8000")
         .send({ inc_votes: 6 })
         .expect(404)
@@ -211,7 +211,7 @@ describe("/api/articles/:article_id", () => {
         });
     });
     test("PATCH 400: responds bad request if id is invalid", () => {
-      request(app)
+      return request(app)
         .patch("/api/articles/banana")
         .send({ inc_votes: 6 })
         .expect(400)
@@ -219,17 +219,27 @@ describe("/api/articles/:article_id", () => {
           expect(msg).toBe("Bad request");
         });
     });
-    test("PATCH 400: responds bad request if no inc_votes key in payload", () => {
-      request(app)
-        .patch("/api/articles/3")
+    test("PATCH 200: responds with the unmodified article if no correct patch keys in payload", () => {
+      return request(app)
+        .patch("/api/articles/13")
         .send({ not_good_key: 6 })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article).toMatchObject({
+            article_id: 13,
+            title: "Another article about Mitch",
+            topic: "mitch",
+            author: "butter_bridge",
+            body: "There will never be enough articles about Mitch!",
+            created_at: "2020-10-11T11:24:00.000Z",
+            votes: 0,
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          });
         });
     });
     test("PATCH 400: responds bad request if inc_votes isn't an integer", () => {
-      request(app)
+      return request(app)
         .patch("/api/articles/3")
         .send({ inc_votes: "seven yay" })
         .expect(400)
@@ -403,6 +413,14 @@ describe("/api/articles/:article_id/comments", () => {
             .then(({ body: { comments } }) => expect(comments.length).toBe(0));
         });
     });
+  });
+});
+
+describe("/api/comments/:commend_id", () => {
+  describe("DELETE", () => {
+    test.todo("DELETE 204: deletes a comment and returns no content");
+    test.todo("404 no comment to delete with a valid id");
+    test.todo("400 invalid comment_id");
   });
 });
 
