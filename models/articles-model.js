@@ -1,7 +1,7 @@
 const db = require("../db/connection");
 const { checkExists } = require("./utils");
 
-exports.selectArticles = () => {
+exports.selectArticles = (sort_by, order) => {
   return db
     .query(
       `SELECT
@@ -18,7 +18,7 @@ exports.selectArticles = () => {
           ON articles.article_id = comments.article_id
       GROUP BY
           articles.article_id
-      ORDER BY articles.created_at DESC;`
+      ORDER BY articles.${sort_by} ${order.toUpperCase()};`
     )
     .then(({ rows }) => rows);
 };

@@ -113,6 +113,43 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("created_at", { descending: true });
         });
     });
+    test("GET 200: takes a sort_by query that sorts by any valid column", () => {
+      return request(app)
+        .get("/api/articles?sort_by=title")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+          expect(articles).toBeSortedBy("title", { descending: true });
+        });
+    });
+    test("GET 200: takes a order query, asc sorts by ascending", () => {
+      return request(app)
+        .get("/api/articles?order=desc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+          expect(articles).toBeSortedBy("created_at", { descending: true });
+        });
+    });
+    test("GET 200: takes a order query, desc sorts by descending", () => {
+      return request(app)
+        .get("/api/articles?order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+          expect(articles).toBeSortedBy("created_at");
+        });
+    });
+    test("GET 200: combines these", () => {
+      return request(app)
+        .get("/api/articles?sort_by=article_id&order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+          expect(articles).toBeSortedBy("article_id");
+        });
+    });
+    test.todo("40-");
   });
 });
 
