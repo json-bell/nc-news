@@ -201,24 +201,6 @@ describe("/api/articles/:article_id", () => {
             });
         });
     });
-    test("PATCH 404: responds not found if id is valid but not present", () => {
-      return request(app)
-        .patch("/api/articles/8000")
-        .send({ inc_votes: 6 })
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
-        });
-    });
-    test("PATCH 400: responds bad request if id is invalid", () => {
-      return request(app)
-        .patch("/api/articles/banana")
-        .send({ inc_votes: 6 })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        });
-    });
     test("PATCH 200: responds with the unmodified article if no correct patch keys in payload", () => {
       return request(app)
         .patch("/api/articles/13")
@@ -236,6 +218,24 @@ describe("/api/articles/:article_id", () => {
             article_img_url:
               "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
           });
+        });
+    });
+    test("PATCH 404: responds not found if id is valid but not present", () => {
+      return request(app)
+        .patch("/api/articles/8000")
+        .send({ inc_votes: 6 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Resource not found");
+        });
+    });
+    test("PATCH 400: responds bad request if id is invalid", () => {
+      return request(app)
+        .patch("/api/articles/banana")
+        .send({ inc_votes: 6 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
         });
     });
     test("PATCH 400: responds bad request if inc_votes isn't an integer", () => {
@@ -295,6 +295,87 @@ describe("/api/articles/:article_id", () => {
               expect(article).toMatchObject(expectedResponse);
             });
         });
+    });
+    test("PATCH 200: dynamically updates according to body, title or topic", () => {
+      return request(app)
+        .patch("/api/articles/13")
+        .send({
+          title: "Best article about Mitch",
+        })
+        .expect(200)
+        .then(({ body: { article: article } }) => {
+          const expectedResponse = {
+            article_id: 13,
+            title: "Best article about Mitch",
+            topic: "mitch",
+            author: "butter_bridge",
+            body: "There will never be enough articles about Mitch!",
+            created_at: "2020-10-11T11:24:00.000Z",
+            votes: 0,
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          };
+          expect(article).toMatchObject(expectedResponse);
+        });
+    });
+    test("PATCH 200: dynamically responds according to body, title or topic", () => {
+      return request(app)
+        .patch("/api/articles/13")
+        .send({
+          topic: "cats",
+        })
+        .expect(200)
+        .then(({ body: { article: respondedArticle } }) => {
+          const expectedResponse = {
+            article_id: 13,
+            title: "Another article about Mitch",
+            topic: "cats",
+            author: "butter_bridge",
+            body: "There will never be enough articles about Mitch!",
+            created_at: "2020-10-11T11:24:00.000Z",
+            votes: 0,
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          };
+          return request(app)
+            .get("/api/articles/13")
+            .expect(200)
+            .then(({ body: { article } }) => {
+              expect(article).toMatchObject(expectedResponse);
+            });
+        });
+    });
+    test("PATCH 200: Combines these behaviours", () => {
+      return request(app)
+        .patch("/api/articles/13")
+        .send({
+          title: "Best article about Mitch",
+          body: "Here's the new body",
+          inc_votes: 7,
+        })
+        .expect(200)
+        .then(({ body: { article: article } }) => {
+          const expectedResponse = {
+            title: "Best article about Mitch",
+            article_id: 13,
+            topic: "mitch",
+            author: "butter_bridge",
+            body: "Here's the new body",
+            created_at: "2020-10-11T11:24:00.000Z",
+            votes: 7,
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          };
+          expect(article).toMatchObject(expectedResponse);
+        });
+    });
+    // are there any sad paths for title and body? Or can SQL convert everything to a string
+    test("PATCH 400: if given a topic that doesn't exist, responds with a 404", () => {
+      return request(app)
+        .patch("/api/articles/:article_id")
+        .send({ topic: "not-a-topic" })
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
     });
   });
 });
