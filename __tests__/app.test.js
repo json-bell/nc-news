@@ -546,11 +546,37 @@ describe("/api/articles/:article_id/comments", () => {
   });
 });
 
-describe("/api/comments/:commend_id", () => {
+describe("/api/comments/:comment_id", () => {
   describe("DELETE", () => {
-    test.todo("DELETE 204: deletes a comment and returns no content");
-    test.todo("404 no comment to delete with a valid id");
-    test.todo("400 invalid comment_id");
+    test("DELETE 204: deletes a comment and returns no content", () => {
+      return request(app)
+        .delete("/api/comments/1")
+        .expect(204)
+        .then(({ body }) => {
+          expect(body).toEqual({});
+          return request(app)
+            .get("/api/articles/9/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments.length).toBe(1);
+              expect(comments[0]).toMatchObject({
+                comment_id: 17,
+              });
+            });
+        });
+    });
+    test("DELETE 404 valid id doesn't have an associated comment to delete", () => {
+      return request(app)
+        .delete("/api/comments/1002")
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
+    test("DELETE 400 invalid comment_id", () => {
+      return request(app)
+        .delete("/api/comments/dog")
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
   });
 });
 
