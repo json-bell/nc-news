@@ -463,13 +463,12 @@ describe("/api/articles/:article_id", () => {
         });
     });
     // are there any sad paths for title and body? Or can SQL convert everything to a string
-    // Should this be 400 or 404? 404 gives the impression that article wasn't found - better to have variety in the error codes
-    test("PATCH 400: if given a topic that doesn't exist, responds with a 400", () => {
+    test("PATCH 404: if given a topic that doesn't exist, responds with a 400", () => {
       return request(app)
-        .patch("/api/articles/:article_id")
+        .patch("/api/articles/4")
         .send({ topic: "not-a-topic" })
-        .expect(400)
-        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
   });
 });

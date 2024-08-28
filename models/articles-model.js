@@ -5,10 +5,10 @@ const { checkExists, getOrder } = require("./utils");
 exports.selectArticles = (sort_by, order, topic) => {
   return getOrder(order)
     .then((queryOrder) => {
-      const queryCheckProms = [];
+      const queryValidityCheckProms = [];
       const queryParams = [];
       if (topic !== undefined) {
-        queryCheckProms.push(checkExists("topics", "slug", topic));
+        queryValidityCheckProms.push(checkExists("topics", "slug", topic));
         queryParams.push(topic);
       }
       const queryStr = format(
@@ -30,10 +30,10 @@ exports.selectArticles = (sort_by, order, topic) => {
         ORDER BY articles.%I ${queryOrder};`,
         sort_by
       );
-      const queryPromise = db.query(queryStr, queryParams);
-      return Promise.all([queryPromise, ...queryCheckProms]);
+      return Promise.all([queryStr, queryParams, ...queryValidityCheckProms]);
     })
-    .then(([{ rows }]) => rows);
+    .then(([queryStr, queryParams]) => db.query(queryStr, queryParams))
+    .then(({ rows }) => rows);
 };
 
 exports.selectArticleById = (article_id) => {
@@ -55,23 +55,20 @@ exports.updateArticle = (article_id, updates) => {
     .then(() => {
       const queryUpdateStrings = [];
       const queryParams = [article_id];
+      const queryValidityCheckProms = [];
       const { inc_votes } = updates;
       if (inc_votes !== undefined) {
-        // Is there a better way to do the parametrised query? User created references feel odd
         queryUpdateStrings.push(` votes = votes + $${queryParams.length + 1}`);
         queryParams.push(inc_votes);
       }
       const validKeys = ["body", "title", "topic"];
       for (key of validKeys) {
         if (updates[key] !== undefined) {
-          /* for topics, I see a couple of ways of checking the topic is alright for the references:
-          Either pass it to SQL and let that throw the error (what I'm currently doing)
-          Or try to do 
-          checkExists("topics","slug",updates.topic)
-          but then we get nested promises, so we'd have to create some "PromiseChecks" promise
-          to then return in a Promise.all,
-          but this would still lead to same outcome (400 for invalid reference)
-          */
+          if (key === "topic") {
+            queryValidityCheckProms.push(
+              checkExists("topics", "slug", updates.topic)
+            );
+          }
           queryUpdateStrings.push(` ${key} = $${queryParams.length + 1}`);
           queryParams.push(updates[key]);
         }
@@ -82,11 +79,10 @@ exports.updateArticle = (article_id, updates) => {
           : `UPDATE articles SET ` +
             queryUpdateStrings.join(",") +
             ` WHERE article_id = $1 RETURNING *;`;
-      return db.query(queryStr, queryParams);
+      return Promise.all([queryStr, queryParams, ...queryValidityCheckProms]);
     })
-    .then(({ rows }) => {
-      if (rows.length === 0)
-        return Promise.reject({ msg: "Resource not found", code: 404 });
-      return rows[0];
-    });
+    .then(([queryStr, queryParams]) => db.query(queryStr, queryParams))
+    .then(({ rows }) => rows[0]);
 };
+
+//just refactored this to have diff error
