@@ -17,6 +17,7 @@ const {
   postComment,
   deleteComment,
 } = require("./controllers/comments-controller");
+const { getUsers } = require("./controllers/users-controller");
 
 //
 
@@ -28,6 +29,8 @@ app.use(express.json());
 app.get("/api", getApiInfo);
 
 app.get("/api/topics", getTopics);
+
+app.get("/api/users", getUsers);
 
 app.get("/api/articles", getArticle);
 
