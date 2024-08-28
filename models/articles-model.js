@@ -37,14 +37,18 @@ exports.selectArticleById = (article_id) => {
     });
 };
 
-exports.updateArticle = (article_id, inc_votes) => {
+exports.updateArticle = (article_id, { inc_votes, body }) => {
   return checkExists("articles", "article_id", article_id)
     .then(() => {
       const queryUpdateStrings = [];
       const queryParams = [article_id];
       if (inc_votes !== undefined) {
-        queryUpdateStrings.push(` votes = votes + $2`);
-        queryParams[1] = inc_votes;
+        queryUpdateStrings.push(` votes = votes + $${queryParams.length + 1}`);
+        queryParams.push(inc_votes);
+      }
+      if (body !== undefined) {
+        queryUpdateStrings.push(` body = $${queryParams.length + 1}`);
+        queryParams.push(body);
       }
       const queryStr =
         queryUpdateStrings.length === 0
@@ -52,6 +56,7 @@ exports.updateArticle = (article_id, inc_votes) => {
           : `UPDATE articles SET ` +
             queryUpdateStrings.join(",") +
             ` WHERE article_id = $1 RETURNING *;`;
+      console.log(queryStr, "<--- query string");
       return db.query(queryStr, queryParams);
     })
     .then(({ rows }) => {

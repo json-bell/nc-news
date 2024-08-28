@@ -134,7 +134,7 @@ describe("/api/articles/:article_id", () => {
     });
   });
   describe("PATCH", () => {
-    test("PATCH 200: responds with updated article", () => {
+    test("PATCH 200: responds with article with updated vote count", () => {
       return request(app)
         .patch("/api/articles/13")
         .send({ inc_votes: 6 })
@@ -245,6 +245,55 @@ describe("/api/articles/:article_id", () => {
         .expect(400)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad request");
+        });
+    });
+    test("PATCH 200: body: correctly responds with the updated article", () => {
+      return request(app)
+        .patch("/api/articles/13")
+        .send({
+          body: "This is a better body, Mitch is still great though!",
+        })
+        .expect(200)
+        .then(({ body: { article: respondedArticle } }) => {
+          const expectedResponse = {
+            article_id: 13,
+            title: "Another article about Mitch",
+            topic: "mitch",
+            author: "butter_bridge",
+            body: "This is a better body, Mitch is still great though!",
+            created_at: "2020-10-11T11:24:00.000Z",
+            votes: 0,
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          };
+          expect(respondedArticle).toMatchObject(expectedResponse);
+        });
+    });
+    test("PATCH 200: body: correctly responds with the updated article", () => {
+      return request(app)
+        .patch("/api/articles/13")
+        .send({
+          body: "This is a better body, Mitch is still great though!",
+        })
+        .expect(200)
+        .then(({ body: { article: respondedArticle } }) => {
+          const expectedResponse = {
+            article_id: 13,
+            title: "Another article about Mitch",
+            topic: "mitch",
+            author: "butter_bridge",
+            body: "This is a better body, Mitch is still great though!",
+            created_at: "2020-10-11T11:24:00.000Z",
+            votes: 0,
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          };
+          return request(app)
+            .get("/api/articles/13")
+            .expect(200)
+            .then(({ body: { article } }) => {
+              expect(article).toMatchObject(expectedResponse);
+            });
         });
     });
   });
