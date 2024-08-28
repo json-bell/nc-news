@@ -149,7 +149,18 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("article_id");
         });
     });
-    test.todo("40-");
+    test("GET 400: order not valid", () => {
+      return request(app)
+        .get("/api/articles?order=not-an-order")
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
+    test("GET 400: invalid column name to sort by", () => {
+      return request(app)
+        .get("/api/articles?sort_by=not-a-column")
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
   });
 });
 

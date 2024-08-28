@@ -1,25 +1,30 @@
 const db = require("../db/connection");
-const { checkExists } = require("./utils");
+const format = require("pg-format");
+const { checkExists, getOrder } = require("./utils");
 
 exports.selectArticles = (sort_by, order) => {
-  return db
-    .query(
-      `SELECT
-          articles.author,
-          articles.title,
-          articles.article_id,
-          articles.topic,
-          articles.created_at,
-          articles.votes,
-          articles.article_img_url,
-          COUNT(comments.comment_id)::INT AS comment_count
+  return getOrder(order)
+    .then((queryOrder) => {
+      const queryStr = format(
+        `SELECT
+      articles.author,
+      articles.title,
+      articles.article_id,
+      articles.topic,
+      articles.created_at,
+      articles.votes,
+      articles.article_img_url,
+      COUNT(comments.comment_id)::INT AS comment_count
       FROM articles
       LEFT JOIN comments
-          ON articles.article_id = comments.article_id
+      ON articles.article_id = comments.article_id
       GROUP BY
-          articles.article_id
-      ORDER BY articles.${sort_by} ${order.toUpperCase()};`
-    )
+      articles.article_id
+      ORDER BY articles.%I ${queryOrder};`,
+        sort_by
+      );
+      return db.query(queryStr);
+    })
     .then(({ rows }) => rows);
 };
 
