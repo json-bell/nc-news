@@ -39,19 +39,16 @@ exports.selectArticles = (sort_by, order, topic) => {
 exports.insertArticle = (author, title, body, topic, article_img_url) => {
   const queryParams = [author, title, body, topic];
   if (article_img_url) queryParams.push(article_img_url);
-  return db
-    .query(
-      `INSERT INTO articles (author,title,body,topic${
-        article_img_url ? ",article_img_url" : ""
-      })
-      VALUES ($1,$2,$3,$4${article_img_url ? ",$5" : ""})
+  const colNames =
+    "author, title, body, topic" + (article_img_url ? ", article_img_url" : "");
+  const values = "$1, $2, $3, $4" + (article_img_url ? ",$5" : "");
+  const queryStr = `INSERT INTO articles(${colNames})
+      VALUES (${values})
       RETURNING
         *,
         0 as comment_count;
-      `,
-      queryParams
-    )
-    .then(({ rows }) => rows[0]);
+      `;
+  return db.query(queryStr, queryParams).then(({ rows }) => rows[0]);
 };
 
 exports.selectArticleById = (article_id) => {
