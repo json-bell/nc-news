@@ -398,7 +398,7 @@ describe("/api/articles/:article_id", () => {
           body: "This is a better body, Mitch is still great though!",
         })
         .expect(200)
-        .then(({ body: { article: respondedArticle } }) => {
+        .then(({ body: { article } }) => {
           const expectedResponse = {
             article_id: 13,
             title: "Another article about Mitch",
@@ -410,32 +410,32 @@ describe("/api/articles/:article_id", () => {
             article_img_url:
               "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
           };
-          expect(respondedArticle).toMatchObject(expectedResponse);
+          expect(article).toMatchObject(expectedResponse);
         });
     });
-    test("PATCH 200: body: correctly responds with the updated article", () => {
+    test("PATCH 200: body: correctly updates article in database", () => {
       return request(app)
         .patch("/api/articles/13")
         .send({
           body: "This is a better body, Mitch is still great though!",
         })
         .expect(200)
-        .then(({ body: { article: respondedArticle } }) => {
-          const expectedResponse = {
-            article_id: 13,
-            title: "Another article about Mitch",
-            topic: "mitch",
-            author: "butter_bridge",
-            body: "This is a better body, Mitch is still great though!",
-            created_at: "2020-10-11T11:24:00.000Z",
-            votes: 0,
-            article_img_url:
-              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-          };
+        .then(() => {
           return request(app)
             .get("/api/articles/13")
             .expect(200)
             .then(({ body: { article } }) => {
+              const expectedResponse = {
+                article_id: 13,
+                title: "Another article about Mitch",
+                topic: "mitch",
+                author: "butter_bridge",
+                body: "This is a better body, Mitch is still great though!",
+                created_at: "2020-10-11T11:24:00.000Z",
+                votes: 0,
+                article_img_url:
+                  "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+              };
               expect(article).toMatchObject(expectedResponse);
             });
         });
@@ -691,6 +691,175 @@ describe("/api/articles/:article_id/comments", () => {
 });
 
 describe("/api/comments/:comment_id", () => {
+  xdescribe("PATCH", () => {
+    test("PATCH 200: responds with comment with updated vote count", () => {
+      return request(app)
+        .patch("/api/comments/2")
+        .send({ inc_votes: 6 })
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toMatchObject({
+            comment_id: 2,
+            body: "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+            article_id: 1,
+            author: "butter_bridge",
+            votes: 20,
+            created_at: "2020-10-31T03:03:00.000Z",
+          });
+        });
+    });
+    test("PATCH 200: correctly increases vote count", () => {
+      return request(app)
+        .patch("/api/comments/2")
+        .send({ inc_votes: 6 })
+        .expect(200)
+        .then(() => {
+          return request(app)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(
+                comments.find((comment) => comment.comment_id === 2)
+              ).toMatchObject({
+                comment_id: 2,
+                body: "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+                article_id: 1,
+                author: "butter_bridge",
+                votes: 20,
+                created_at: "2020-10-31T03:03:00.000Z",
+              });
+            });
+        });
+    });
+    test("PATCH 200: correctly decreases vote count", () => {
+      return request(app)
+        .patch("/api/comments/2")
+        .send({ inc_votes: -2 })
+        .expect(200)
+        .then(() => {
+          return request(app)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(
+                comments.find((comment) => comment.comment_id === 2)
+              ).toMatchObject({
+                comment_id: 2,
+                body: "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+                article_id: 1,
+                author: "butter_bridge",
+                votes: 12,
+                created_at: "2020-10-31T03:03:00.000Z",
+              });
+            });
+        });
+    });
+    test("PATCH 200: responds with the unmodified article if no correct patch keys in payload", () => {
+      return request(app)
+        .patch("/api/comments/2")
+        .send({ not_good_key: 6 })
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toMatchObject({
+            comment_id: 2,
+            body: "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+            article_id: 1,
+            author: "butter_bridge",
+            votes: 14,
+            created_at: "2020-10-31T03:03:00.000Z",
+          });
+        });
+    });
+    test("PATCH 404: responds not found if id is valid but not present", () => {
+      return request(app)
+        .patch("/api/comments/8000")
+        .send({ inc_votes: 6 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Resource not found");
+        });
+    });
+    test("PATCH 400: responds bad request if id is invalid", () => {
+      return request(app)
+        .patch("/api/comments/banana")
+        .send({ inc_votes: 6 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("PATCH 400: responds bad request if inc_votes isn't an integer", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ inc_votes: "seven yay" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("PATCH 200: body: correctly responds with the updated comment", () => {
+      return request(app)
+        .patch("/api/comments/2")
+        .send({
+          body: "Found them, these sheets are actually made of dreams!",
+        })
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toMatchObject({
+            comment_id: 2,
+            body: "Found them, these sheets are actually made of dreams!",
+            article_id: 1,
+            author: "butter_bridge",
+            votes: 14,
+            created_at: "2020-10-31T03:03:00.000Z",
+          });
+        });
+    });
+    test("PATCH 200: body: correctly updates comment in data", () => {
+      return request(app)
+        .patch("/api/comment/2")
+        .send({
+          body: "Found them, these sheets are actually made of dreams!",
+        })
+        .expect(200)
+        .then((_) => {
+          return request(app)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(
+                comments.find((comment) => comment.comment_id === 2)
+              ).toMatchObject({
+                comment_id: 2,
+                body: "Found them, these sheets are actually made of dreams!",
+                article_id: 1,
+                author: "butter_bridge",
+                votes: 14,
+                created_at: "2020-10-31T03:03:00.000Z",
+              });
+            });
+        });
+    });
+    test("PATCH 200: patch can take both a body and inc_value key", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({
+          body: "Here's the new body",
+          inc_votes: 7,
+        })
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toMatchObject({
+            comment_id: 2,
+            body: "Here's the new body",
+            article_id: 1,
+            author: "butter_bridge",
+            votes: 21,
+            created_at: "2020-10-31T03:03:00.000Z",
+          });
+        });
+    });
+  });
   describe("DELETE", () => {
     test("DELETE 204: deletes a comment and returns no content", () => {
       return request(app)

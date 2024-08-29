@@ -133,6 +133,7 @@
       }
     }
   },
+  "PATCH /api/comments/:comment_id": {},
   "DELETE /api/comments/:comment_id": {
     "description": "deletes a comment specified by its id",
     "queries": [],
