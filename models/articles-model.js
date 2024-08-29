@@ -27,7 +27,9 @@ exports.selectArticles = (sort_by, order, topic) => {
         ${topic === undefined ? `` : `WHERE articles.topic = $1`}
         GROUP BY
           articles.article_id
-        ORDER BY articles.%I ${queryOrder};`,
+        ORDER BY
+          articles.%I ${queryOrder}
+        LIMIT 10;`,
         sort_by
       );
       return Promise.all([queryStr, queryParams, ...queryValidityCheckProms]);
