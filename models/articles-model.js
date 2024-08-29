@@ -37,9 +37,10 @@ exports.selectArticles = (sort_by, order, topic) => {
 };
 
 exports.selectArticleById = (article_id) => {
-  return db
-    .query(
-      `SELECT
+  return checkExists("articles", "article_id", article_id)
+    .then(() =>
+      db.query(
+        `SELECT
         articles.*,
         COUNT(comments.comment_id)::INT AS comment_count
       FROM articles
@@ -48,13 +49,10 @@ exports.selectArticleById = (article_id) => {
       WHERE articles.article_id = $1
       GROUP BY
         articles.article_id`,
-      [article_id]
+        [article_id]
+      )
     )
-    .then(({ rows }) => {
-      if (rows.length === 0)
-        return Promise.reject({ msg: "Resource not found", code: 404 });
-      return rows[0];
-    });
+    .then(({ rows }) => rows[0]);
 };
 
 exports.updateArticle = (article_id, updates) => {
