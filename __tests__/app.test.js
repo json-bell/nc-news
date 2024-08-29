@@ -691,7 +691,7 @@ describe("/api/articles/:article_id/comments", () => {
 });
 
 describe("/api/comments/:comment_id", () => {
-  xdescribe("PATCH", () => {
+  describe("PATCH", () => {
     test("PATCH 200: responds with comment with updated vote count", () => {
       return request(app)
         .patch("/api/comments/2")
@@ -817,7 +817,7 @@ describe("/api/comments/:comment_id", () => {
     });
     test("PATCH 200: body: correctly updates comment in data", () => {
       return request(app)
-        .patch("/api/comment/2")
+        .patch("/api/comments/2")
         .send({
           body: "Found them, these sheets are actually made of dreams!",
         })
@@ -842,7 +842,7 @@ describe("/api/comments/:comment_id", () => {
     });
     test("PATCH 200: patch can take both a body and inc_value key", () => {
       return request(app)
-        .patch("/api/comments/3")
+        .patch("/api/comments/2")
         .send({
           body: "Here's the new body",
           inc_votes: 7,

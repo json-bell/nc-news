@@ -32,3 +32,27 @@ exports.removeComment = (comment_id) => {
     db.query(`DELETE FROM comments WHERE comment_id = $1`, [comment_id])
   );
 };
+
+exports.updateComment = (comment_id, { inc_votes, body }) => {
+  return checkExists("comments", "comment_id", comment_id)
+    .then(() => {
+      const queryUpdateStrings = [];
+      const queryParams = [comment_id];
+      if (inc_votes !== undefined) {
+        queryParams.push(inc_votes);
+        queryUpdateStrings.push(` votes = votes + $${queryParams.length}`);
+      }
+      if (body !== undefined) {
+        queryParams.push(body);
+        queryUpdateStrings.push(` body = $${queryParams.length}`);
+      }
+      const queryStr =
+        queryUpdateStrings.length === 0
+          ? `SELECT * FROM comments WHERE comment_id = $1`
+          : `UPDATE comments SET ` +
+            queryUpdateStrings.join(", ") +
+            ` WHERE comment_id = $1 RETURNING *`;
+      return db.query(queryStr, queryParams);
+    })
+    .then(({ rows }) => rows[0]);
+};
