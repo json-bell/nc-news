@@ -1,10 +1,10 @@
 const db = require("../db/connection");
 const format = require("pg-format");
-const { checkExists, getOrder } = require("./utils");
+const { checkExists, getOrder, getPageString } = require("./utils");
 
-exports.selectArticles = (sort_by, order, topic) => {
-  return getOrder(order)
-    .then((queryOrder) => {
+exports.selectArticles = ({ sort_by, order, topic, limit, p }) => {
+  return Promise.all([getOrder(order), getPageString(limit, p)])
+    .then(([queryOrder, pageString]) => {
       const queryValidityCheckProms = [];
       const queryParams = [];
       if (topic !== undefined) {
@@ -27,7 +27,9 @@ exports.selectArticles = (sort_by, order, topic) => {
         ${topic === undefined ? `` : `WHERE articles.topic = $1`}
         GROUP BY
           articles.article_id
-        ORDER BY articles.%I ${queryOrder};`,
+        ORDER BY
+          articles.%I ${queryOrder}
+        ${pageString};`,
         sort_by
       );
       return Promise.all([queryStr, queryParams, ...queryValidityCheckProms]);

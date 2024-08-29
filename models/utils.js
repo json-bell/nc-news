@@ -20,3 +20,16 @@ exports.getOrder = (order) => {
   if (order.toLowerCase() === "desc") return Promise.resolve("DESC");
   return Promise.reject({ msg: "Bad request", code: 400 });
 };
+
+exports.getPageString = (limitStr, pageStr) => {
+  if (["0", "infinity", "none"].includes(limitStr)) return "";
+  const limit = Number(limitStr);
+  const page = Number(pageStr);
+  if (!Number.isInteger(limit) || !Number.isInteger(page))
+    return Promise.reject({ msg: "Bad request", code: 400 });
+  if (limit < 0) {
+    return Promise.reject({ msg: "Bad request", code: 400 });
+  }
+  if (page <= 0) return `LIMIT 0`;
+  return `LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+};

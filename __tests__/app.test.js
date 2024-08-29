@@ -89,13 +89,13 @@ describe("/api/users/:username", () => {
 });
 
 describe("/api/articles", () => {
-  describe("GET", () => {
-    test("GET 200: finds all articles", () => {
+  describe("GET (default limit 10)", () => {
+    test("GET 200: finds first 10 articles", () => {
       return request(app)
         .get("/api/articles")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(13);
+          expect(articles.length).toBe(10);
           articles.forEach((article) => {
             expect(article).toMatchObject({
               author: expect.any(String),
@@ -125,7 +125,7 @@ describe("/api/articles", () => {
         .get("/api/articles")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(13);
+          expect(articles.length).toBe(10);
           articles.forEach((article) => {
             expect(article.hasOwnProperty("body")).toBe(false);
           });
@@ -146,7 +146,7 @@ describe("/api/articles", () => {
         .get("/api/articles?sort_by=title")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(13);
+          expect(articles.length).toBe(10);
           expect(articles).toBeSortedBy("title", { descending: true });
         });
     });
@@ -155,7 +155,7 @@ describe("/api/articles", () => {
         .get("/api/articles?order=desc")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(13);
+          expect(articles.length).toBe(10);
           expect(articles).toBeSortedBy("created_at", { descending: true });
         });
     });
@@ -164,7 +164,7 @@ describe("/api/articles", () => {
         .get("/api/articles?order=aSC")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(13);
+          expect(articles.length).toBe(10);
           expect(articles).toBeSortedBy("created_at");
         });
     });
@@ -173,7 +173,7 @@ describe("/api/articles", () => {
         .get("/api/articles?order=asc")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(13);
+          expect(articles.length).toBe(10);
           expect(articles).toBeSortedBy("created_at");
         });
     });
@@ -182,7 +182,7 @@ describe("/api/articles", () => {
         .get("/api/articles?sort_by=article_id&order=asc")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(13);
+          expect(articles.length).toBe(10);
           expect(articles).toBeSortedBy("article_id");
         });
     });
@@ -202,12 +202,12 @@ describe("/api/articles", () => {
   describe("GET topic filter", () => {
     test("GET 200: filters topic if given a query", () => {
       return request(app)
-        .get("/api/articles?topic=mitch")
+        .get("/api/articles?topic=cats")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(12);
+          expect(articles.length).toBe(1);
           articles.forEach((article) => {
-            expect(article.topic).toBe("mitch");
+            expect(article.topic).toBe("cats");
           });
         });
     });
@@ -224,6 +224,136 @@ describe("/api/articles", () => {
         .get("/api/articles?topic=bananas")
         .expect(404)
         .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
+  });
+  describe("GET pagination", () => {
+    test("GET 200: limit query limits number of articles", () => {
+      return request(app)
+        .get("/api/articles?limit=5")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(5);
+          articles.forEach((article) => {
+            expect(article).toMatchObject({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              article_img_url: expect.any(String),
+              comment_count: expect.any(Number),
+            });
+          });
+        });
+    });
+    test("GET 200: limit shows all articles if limit is bigger than number of articles", () => {
+      return request(app)
+        .get("/api/articles?limit=20")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+        });
+    });
+    test("GET 200: giving limit='infinity' or 'none' gives all articles", () => {
+      return request(app)
+        .get("/api/articles?limit=infinity")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+        });
+    });
+    test("GET 200: giving limit=0 gives all articles", () => {
+      return request(app)
+        .get("/api/articles?limit=0")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+        });
+    });
+    test("GET 400: errors if limit is negative", () => {
+      return request(app)
+        .get("/api/articles?limit=-20")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("GET 400: errors if limit is not a number or keyword", () => {
+      return request(app)
+        .get("/api/articles?limit=bananas")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("GET 200: limit is compatible with sort and defaults to page 1", () => {
+      return request(app)
+        .get("/api/articles?limit=5&sort_by=article_id&order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(5);
+          expect(articles).toBeSortedBy("article_id");
+          articles.forEach((article) =>
+            expect([1, 2, 3, 4, 5].includes(article.article_id)).toEqual(true)
+          );
+        });
+    });
+    test("GET 200: page specifies higher pages", () => {
+      return request(app)
+        .get("/api/articles?limit=5&sort_by=article_id&p=2&order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(5);
+          expect(articles).toBeSortedBy("article_id");
+          articles.forEach((article) =>
+            expect([6, 7, 8, 9, 10].includes(article.article_id)).toEqual(true)
+          );
+        });
+    });
+    test("GET 200: page gives partial pages on last page", () => {
+      return request(app)
+        .get("/api/articles?limit=5&sort_by=article_id&p=3&order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(3);
+          expect(articles).toBeSortedBy("article_id");
+          articles.forEach((article) =>
+            expect([11, 12, 13].includes(article.article_id)).toEqual(true)
+          );
+        });
+    });
+    test("GET 200: page returns empty array if given a negative integer", () => {
+      return request(app)
+        .get("/api/articles?limit=9&p=-2")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toEqual([]);
+        });
+    });
+    test("GET 200: page returns empty array if given a integer out of range", () => {
+      return request(app)
+        .get("/api/articles?limit=6&p=15")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toEqual([]);
+        });
+    });
+    test("GET 400: errors if page query is a not whole number", () => {
+      return request(app)
+        .get("/api/articles?p=15.2")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("GET 400: errors if page query is not a number", () => {
+      return request(app)
+        .get("/api/articles?p=15.2")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
     });
   });
   describe("POST", () => {
