@@ -226,7 +226,7 @@ describe("/api/articles", () => {
         .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
   });
-  describe("GET pagination", () => {
+  describe("GET limit", () => {
     test("GET 200: limit query limits number of articles", () => {
       return request(app)
         .get("/api/articles?limit=5")
@@ -299,6 +299,8 @@ describe("/api/articles", () => {
           );
         });
     });
+  });
+  describe("GET pagination", () => {
     test("GET 200: page specifies higher pages", () => {
       return request(app)
         .get("/api/articles?limit=5&sort_by=article_id&p=2&order=asc")
@@ -313,7 +315,7 @@ describe("/api/articles", () => {
     });
     test("GET 200: page gives partial pages on last page", () => {
       return request(app)
-        .get("/api/articles?limit=5&sort_by=article_id&p=3&order=asc")
+        .get("/api/articles?sort_by=article_id&p=2&order=asc")
         .expect(200)
         .then(({ body: { articles } }) => {
           expect(articles.length).toBe(3);
@@ -1198,7 +1200,7 @@ describe("/api/comments/:comment_id", () => {
   });
 });
 
-describe("Invalid endpoint returns 404 and message indicating URL was not found", () => {
+describe("Invalid endpoints", () => {
   describe("ALL", () => {
     test("404: If given a not present endpoint, returns a 404 error with appropriate message", () => {
       return request(app)
