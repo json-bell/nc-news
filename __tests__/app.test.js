@@ -906,7 +906,8 @@ describe("/api/articles/:article_id/comments", () => {
         .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
     });
   });
-  xdescribe("GET limit", () => {
+  describe("GET limit", () => {
+    /* comment_ids for article 1: 2,3,4,5,6,7,8,9,12,13,18*/
     test("GET 200: limit defaults to 10", () => {
       return request(app)
         .get("/api/articles/1/comments")
@@ -920,7 +921,7 @@ describe("/api/articles/:article_id/comments", () => {
               created_at: expect.any(String),
               author: expect.any(String),
               body: expect.any(String),
-              article_id: 3,
+              article_id: 1,
             });
           });
         });
@@ -939,7 +940,7 @@ describe("/api/articles/:article_id/comments", () => {
               created_at: expect.any(String),
               author: expect.any(String),
               body: expect.any(String),
-              article_id: 3,
+              article_id: 1,
             });
           });
         });
@@ -949,7 +950,7 @@ describe("/api/articles/:article_id/comments", () => {
         .get("/api/articles/1/comments?limit=20")
         .expect(200)
         .then(({ body: { comments } }) => {
-          expect(comments.length).toBe(13);
+          expect(comments.length).toBe(11);
         });
     });
     test("GET 200: giving limit='infinity' or 'none' gives all comments", () => {
@@ -985,7 +986,7 @@ describe("/api/articles/:article_id/comments", () => {
         });
     });
   });
-  xdescribe("GET pagination", () => {
+  describe("GET pagination", () => {
     test("GET 200: page specifies higher pages", () => {
       return request(app)
         .get(
@@ -996,8 +997,52 @@ describe("/api/articles/:article_id/comments", () => {
           expect(comments.length).toBe(5);
           expect(comments).toBeSortedBy("comment_id");
           comments.forEach((comment) =>
-            expect([6, 7, 8, 9, 10].includes(comment.comment_id)).toEqual(true)
+            expect([7, 8, 9, 12, 13].includes(comment.comment_id)).toEqual(true)
           );
+        });
+    });
+    test("GET 200: page gives partial pages on last page", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=comment_id&p=2&limit=8")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(3);
+          expect(comments).toBeSortedBy("comment_id", { descending: true });
+          comments.forEach((comment) =>
+            expect([2, 3, 4].includes(comment.comment_id)).toEqual(true)
+          );
+        });
+    });
+    test("GET 200: page returns empty array if given a negative integer", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=9&p=-2")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).toEqual([]);
+        });
+    });
+    test("GET 200: page returns empty array if given a integer out of range", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=6&p=15")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).toEqual([]);
+        });
+    });
+    test("GET 400: errors if page query is a not whole number", () => {
+      return request(app)
+        .get("/api/articles/1/comments?p=15.2")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("GET 400: errors if page query is not a number", () => {
+      return request(app)
+        .get("/api/articles/1/comments?p=15.2")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
         });
     });
   });
