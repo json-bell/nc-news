@@ -36,6 +36,20 @@ exports.selectArticles = (sort_by, order, topic) => {
     .then(({ rows }) => rows);
 };
 
+exports.insertArticle = (author, title, body, topic, article_img_url) => {
+  return db
+    .query(
+      `INSERT INTO articles (author,title,body,topic,article_img_url)
+      VALUES ($1,$2,$3,$4,$5)
+      RETURNING
+        *,
+        0 as comment_count;
+      `,
+      [author, title, body, topic, article_img_url]
+    )
+    .then(({ rows }) => rows[0]);
+};
+
 exports.selectArticleById = (article_id) => {
   return checkExists("articles", "article_id", article_id)
     .then(() =>
