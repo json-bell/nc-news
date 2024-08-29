@@ -11,6 +11,7 @@ exports.checkExists = (table, column, value) => {
   return db.query(queryStr, [value]).then(({ rows }) => {
     if (rows.length === 0)
       return Promise.reject({ code: 404, msg: "Resource not found" });
+    return { rows };
   });
 };
 
