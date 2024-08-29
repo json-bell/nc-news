@@ -310,9 +310,50 @@ describe("/api/articles", () => {
           })
         );
     });
-    test.todo("POST 404: errors if the given author isn't in the database");
-    test.todo("POST 404: errors if the given topic isn't in the database");
-    test.todo("POST 400: errors if payload is missing a required property");
+    test("POST 404: errors if the given author isn't a user in the database", () => {
+      const payload = {
+        author: "not-a-user",
+        title: "Cats time",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "cats",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
+    test("POST 404: errors if the given topic isn't in the database", () => {
+      const payload = {
+        author: "lurker",
+        title: "Cats time",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "bananas",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
+    test("POST 400: errors if payload is missing a required property", () => {
+      const payload = {
+        author: "lurker",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "cats",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
   });
 });
 
