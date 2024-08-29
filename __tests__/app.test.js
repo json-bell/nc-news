@@ -594,6 +594,7 @@ describe("/api/articles/:article_id/comments", () => {
             comment_id: expect.any(Number),
             article_id: 9,
             votes: 0,
+            created_at: expect.any(String),
           });
         });
     });
@@ -621,6 +622,7 @@ describe("/api/articles/:article_id/comments", () => {
                 comment_id: expect.any(Number),
                 article_id: 9,
                 votes: 0,
+                created_at: expect.any(String),
               });
             });
         });
@@ -691,6 +693,39 @@ describe("/api/articles/:article_id/comments", () => {
 });
 
 describe("/api/comments/:comment_id", () => {
+  describe("GET", () => {
+    test("GET 200: finds comment by its id", () => {
+      return request(app)
+        .get("/api/comments/3")
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toMatchObject({
+            comment_id: 3,
+            body: "Replacing the quiet elegance of the dark suit and tie with the casual indifference of these muted earth tones is a form of fashion suicide, but, uh, call me crazy — onyou it works.",
+            article_id: 1,
+            author: "icellusedkars",
+            votes: 100,
+            created_at: "2020-03-01T01:13:00.000Z",
+          });
+        });
+    });
+    test("GET 404: returns Not Found message if id is valid but not present", () => {
+      return request(app)
+        .get("/api/comments/8080")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Resource not found");
+        });
+    });
+    test("GET 400: returns Bad Request message if id is invalid", () => {
+      return request(app)
+        .get("/api/comments/dog")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+  });
   describe("PATCH", () => {
     test("PATCH 200: responds with comment with updated vote count", () => {
       return request(app)

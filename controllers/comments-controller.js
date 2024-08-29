@@ -3,6 +3,7 @@ const {
   insertComment,
   removeComment,
   updateComment,
+  selectCommentById,
 } = require("../models/comments-model");
 
 exports.getCommentsByArticle = (req, res, next) => {
@@ -21,6 +22,13 @@ exports.postComment = (req, res, next) => {
     .then((comment) => {
       res.status(201).send({ comment });
     })
+    .catch((err) => next(err));
+};
+
+exports.getCommentById = (req, res, next) => {
+  const { comment_id } = req.params;
+  selectCommentById(comment_id)
+    .then((comment) => res.status(200).send({ comment }))
     .catch((err) => next(err));
 };
 
