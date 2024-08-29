@@ -139,6 +139,8 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("created_at", { descending: true });
         });
     });
+  });
+  describe("GET sorting", () => {
     test("GET 200: takes a sort_by query that sorts by any valid column", () => {
       return request(app)
         .get("/api/articles?sort_by=title")
@@ -196,6 +198,8 @@ describe("/api/articles", () => {
         .expect(400)
         .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
     });
+  });
+  describe("GET topic filter", () => {
     test("GET 200: filters topic if given a query", () => {
       return request(app)
         .get("/api/articles?topic=mitch")
@@ -410,7 +414,7 @@ describe("/api/articles/:article_id", () => {
         });
     });
   });
-  describe("PATCH", () => {
+  describe("PATCH votes", () => {
     test("PATCH 200: responds with article with updated vote count", () => {
       return request(app)
         .patch("/api/articles/13")
@@ -524,6 +528,8 @@ describe("/api/articles/:article_id", () => {
           expect(msg).toBe("Bad request");
         });
     });
+  });
+  describe("PATCH content", () => {
     test("PATCH 200: body: correctly responds with the updated article", () => {
       return request(app)
         .patch("/api/articles/13")
@@ -622,6 +628,13 @@ describe("/api/articles/:article_id", () => {
             });
         });
     });
+    test("PATCH 404: if given a topic that doesn't exist, responds with a 400", () => {
+      return request(app)
+        .patch("/api/articles/4")
+        .send({ topic: "not-a-topic" })
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
     test("PATCH 200: patch can take multiple of the keys of body, title, topic and inc_value", () => {
       return request(app)
         .patch("/api/articles/13")
@@ -645,14 +658,6 @@ describe("/api/articles/:article_id", () => {
           };
           expect(article).toMatchObject(expectedResponse);
         });
-    });
-    // are there any sad paths for title and body? Or can SQL convert everything to a string
-    test("PATCH 404: if given a topic that doesn't exist, responds with a 400", () => {
-      return request(app)
-        .patch("/api/articles/4")
-        .send({ topic: "not-a-topic" })
-        .expect(404)
-        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
   });
 });
@@ -859,7 +864,7 @@ describe("/api/comments/:comment_id", () => {
         });
     });
   });
-  describe("PATCH", () => {
+  describe("PATCH votes", () => {
     test("PATCH 200: responds with comment with updated vote count", () => {
       return request(app)
         .patch("/api/comments/2")
@@ -965,6 +970,8 @@ describe("/api/comments/:comment_id", () => {
           expect(msg).toBe("Bad request");
         });
     });
+  });
+  describe("PATCH body", () => {
     test("PATCH 200: body: correctly responds with the updated comment", () => {
       return request(app)
         .patch("/api/comments/2")
@@ -1062,12 +1069,14 @@ describe("/api/comments/:comment_id", () => {
 });
 
 describe("Invalid endpoint returns 404 and message indicating URL was not found", () => {
-  test("404: If given a not present endpoint, returns a 404 error with appropriate message", () => {
-    return request(app)
-      .get("/api/banana")
-      .expect(404)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("Endpoint not found");
-      });
+  describe("ALL", () => {
+    test("404: If given a not present endpoint, returns a 404 error with appropriate message", () => {
+      return request(app)
+        .get("/api/banana")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Endpoint not found");
+        });
+    });
   });
 });
