@@ -594,6 +594,7 @@ describe("/api/articles/:article_id/comments", () => {
             comment_id: expect.any(Number),
             article_id: 9,
             votes: 0,
+            created_at: expect.any(String),
           });
         });
     });
@@ -621,6 +622,7 @@ describe("/api/articles/:article_id/comments", () => {
                 comment_id: expect.any(Number),
                 article_id: 9,
                 votes: 0,
+                created_at: expect.any(String),
               });
             });
         });
