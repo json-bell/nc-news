@@ -28,14 +28,7 @@ exports.insertComment = (article_id, { username, body }) => {
 };
 
 exports.selectCommentById = (comment_id) => {
-  return checkExists("comments", "comment_id", comment_id)
-    .then(() =>
-      db.query(
-        `SELECT * FROM comments
-        WHERE comment_id = $1`,
-        [comment_id]
-      )
-    )
+  return checkExists("comments", "comment_id", comment_id) /* */
     .then(({ rows }) => rows[0]);
 };
 

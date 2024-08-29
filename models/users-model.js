@@ -6,13 +6,5 @@ exports.selectUsers = () => {
 };
 
 exports.selectUserByUsername = (username) => {
-  return checkExists("users", "username", username)
-    .then(() =>
-      db.query(
-        `SELECT * FROM users
-        WHERE username = $1`,
-        [username]
-      )
-    )
-    .then(({ rows }) => rows[0]);
+  return checkExists("users", "username", username).then(({ rows }) => rows[0]);
 };
