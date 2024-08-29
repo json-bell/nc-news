@@ -186,7 +186,7 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("article_id");
         });
     });
-    test("GET 400: order not valid", () => {
+    test("GET 400: if order is not valid", () => {
       return request(app)
         .get("/api/articles?order=not-an-order")
         .expect(400)
@@ -845,6 +845,65 @@ describe("/api/articles/:article_id/comments", () => {
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad request");
         });
+    });
+  });
+  describe("GET sorting", () => {
+    test("GET 200: takes a sort_by query that sorts by any valid column", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=votes")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("votes", { descending: true });
+        });
+    });
+    test("GET 200: takes a order query, desc sorts by descending", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=desc")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("created_at", { descending: true });
+        });
+    });
+    test("GET 200: takes a order query, asc sorts by ascending", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=asc")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("created_at");
+        });
+    });
+    test("GET 200: order query is case insensitive", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=aSC")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("created_at");
+        });
+    });
+    test("GET 200: can take both an order and a sort_by query", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=comment_id&order=asc")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("comment_id");
+        });
+    });
+    test("GET 400: if order is not valid", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=not-an-order")
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
+    test("GET 400: invalid column name to sort by", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=not-a-column")
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
     });
   });
   xdescribe("GET limit", () => {

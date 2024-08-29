@@ -8,7 +8,13 @@ const {
 
 exports.getCommentsByArticle = (req, res, next) => {
   const { article_id } = req.params;
-  selectCommentsByArticle(Number(article_id))
+  const {
+    sort_by = "created_at",
+    order = "desc",
+    limit = 10,
+    p = 1,
+  } = req.query;
+  selectCommentsByArticle(Number(article_id), { sort_by, order, limit, p })
     .then((comments) => {
       res.status(200).send({ comments });
     })
