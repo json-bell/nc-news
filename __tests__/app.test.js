@@ -222,6 +222,139 @@ describe("/api/articles", () => {
         .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
   });
+  describe("POST", () => {
+    test("POST 201: responds with the newly added article, generating other properies", () => {
+      const payload = {
+        author: "lurker",
+        title: "Cats time",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "cats",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(201)
+        .then(({ body: { article } }) =>
+          expect(article).toMatchObject({
+            author: "lurker",
+            title: "Cats time",
+            body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+            topic: "cats",
+            article_img_url:
+              "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+            article_id: expect.any(Number),
+            votes: 0,
+            created_at: expect.any(String),
+            comment_count: 0,
+          })
+        );
+    });
+    test("POST 201: adds the newly added article to database", () => {
+      const payload = {
+        author: "lurker",
+        title: "Cats time",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "cats",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(201)
+        .then(({ body: { article: receivedArticle } }) => {
+          return request(app)
+            .get(`/api/articles/${receivedArticle.article_id}`)
+            .expect(200)
+            .then(({ body: { article } }) =>
+              expect(article).toMatchObject({
+                author: "lurker",
+                title: "Cats time",
+                body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+                topic: "cats",
+                article_img_url:
+                  "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+                article_id: expect.any(Number),
+                votes: 0,
+                created_at: expect.any(String),
+                comment_count: 0,
+              })
+            );
+        });
+    });
+    test("POST 201: sets default image if one isn't provided", () => {
+      const payload = {
+        author: "lurker",
+        title: "Cats time",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "cats",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(201)
+        .then(({ body: { article } }) =>
+          expect(article).toMatchObject({
+            author: "lurker",
+            title: "Cats time",
+            body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+            topic: "cats",
+            article_img_url:
+              "https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700",
+            article_id: expect.any(Number),
+            votes: 0,
+            created_at: expect.any(String),
+            comment_count: 0,
+          })
+        );
+    });
+    test("POST 404: errors if the given author isn't a user in the database", () => {
+      const payload = {
+        author: "not-a-user",
+        title: "Cats time",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "cats",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
+    test("POST 404: errors if the given topic isn't in the database", () => {
+      const payload = {
+        author: "lurker",
+        title: "Cats time",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "bananas",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(404)
+        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+    });
+    test("POST 400: errors if payload is missing a required property", () => {
+      const payload = {
+        author: "lurker",
+        body: "I've decided I'm going to start owning cats! This is a new chapter for me",
+        topic: "cats",
+        article_img_url:
+          "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(payload)
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
+  });
 });
 
 describe("/api/articles/:article_id", () => {
