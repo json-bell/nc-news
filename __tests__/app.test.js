@@ -186,7 +186,7 @@ describe("/api/articles", () => {
           expect(articles).toBeSortedBy("article_id");
         });
     });
-    test("GET 400: order not valid", () => {
+    test("GET 400: if order is not valid", () => {
       return request(app)
         .get("/api/articles?order=not-an-order")
         .expect(400)
@@ -226,7 +226,7 @@ describe("/api/articles", () => {
         .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
   });
-  describe("GET pagination", () => {
+  describe("GET limit", () => {
     test("GET 200: limit query limits number of articles", () => {
       return request(app)
         .get("/api/articles?limit=5")
@@ -299,6 +299,8 @@ describe("/api/articles", () => {
           );
         });
     });
+  });
+  describe("GET pagination", () => {
     test("GET 200: page specifies higher pages", () => {
       return request(app)
         .get("/api/articles?limit=5&sort_by=article_id&p=2&order=asc")
@@ -313,7 +315,7 @@ describe("/api/articles", () => {
     });
     test("GET 200: page gives partial pages on last page", () => {
       return request(app)
-        .get("/api/articles?limit=5&sort_by=article_id&p=3&order=asc")
+        .get("/api/articles?sort_by=article_id&p=2&order=asc")
         .expect(200)
         .then(({ body: { articles } }) => {
           expect(articles.length).toBe(3);
@@ -845,6 +847,205 @@ describe("/api/articles/:article_id/comments", () => {
         });
     });
   });
+  describe("GET sorting", () => {
+    test("GET 200: takes a sort_by query that sorts by any valid column", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=votes")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("votes", { descending: true });
+        });
+    });
+    test("GET 200: takes a order query, desc sorts by descending", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=desc")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("created_at", { descending: true });
+        });
+    });
+    test("GET 200: takes a order query, asc sorts by ascending", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=asc")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("created_at");
+        });
+    });
+    test("GET 200: order query is case insensitive", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=aSC")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("created_at");
+        });
+    });
+    test("GET 200: can take both an order and a sort_by query", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=comment_id&order=asc")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          expect(comments).toBeSortedBy("comment_id");
+        });
+    });
+    test("GET 400: if order is not valid", () => {
+      return request(app)
+        .get("/api/articles/1/comments?order=not-an-order")
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
+    test("GET 400: invalid column name to sort by", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=not-a-column")
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
+  });
+  describe("GET limit", () => {
+    /* comment_ids for article 1: 2,3,4,5,6,7,8,9,12,13,18*/
+    test("GET 200: limit defaults to 10", () => {
+      return request(app)
+        .get("/api/articles/1/comments")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          comments.forEach((comment) => {
+            expect(comment).toMatchObject({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+              article_id: 1,
+            });
+          });
+        });
+    });
+    test("GET 200: limit query limits number of comments & keeps sorting", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=5")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(5);
+          expect(comments).toBeSortedBy("created_at", { descending: true });
+          comments.forEach((comment) => {
+            expect(comment).toMatchObject({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+              article_id: 1,
+            });
+          });
+        });
+    });
+    test("GET 200: limit shows all comments if limit is bigger than total", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=20")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(11);
+        });
+    });
+    test("GET 200: giving limit='infinity' or 'none' gives all comments", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=infinity")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(11);
+        });
+    });
+    test("GET 200: giving limit=0 gives all comments", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=0")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(11);
+        });
+    });
+    test("GET 400: errors if limit is negative", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=-20")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("GET 400: errors if limit is not a number or keyword", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=bananas")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+  });
+  describe("GET pagination", () => {
+    test("GET 200: page specifies higher pages", () => {
+      return request(app)
+        .get(
+          "/api/articles/1/comments?limit=5&sort_by=comment_id&p=2&order=asc"
+        )
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(5);
+          expect(comments).toBeSortedBy("comment_id");
+          comments.forEach((comment) =>
+            expect([7, 8, 9, 12, 13].includes(comment.comment_id)).toEqual(true)
+          );
+        });
+    });
+    test("GET 200: page gives partial pages on last page", () => {
+      return request(app)
+        .get("/api/articles/1/comments?sort_by=comment_id&p=2&limit=8")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(3);
+          expect(comments).toBeSortedBy("comment_id", { descending: true });
+          comments.forEach((comment) =>
+            expect([2, 3, 4].includes(comment.comment_id)).toEqual(true)
+          );
+        });
+    });
+    test("GET 200: page returns empty array if given a negative integer", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=9&p=-2")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).toEqual([]);
+        });
+    });
+    test("GET 200: page returns empty array if given a integer out of range", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=6&p=15")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).toEqual([]);
+        });
+    });
+    test("GET 400: errors if page query is a not whole number", () => {
+      return request(app)
+        .get("/api/articles/1/comments?p=15.2")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("GET 400: errors if page query is not a number", () => {
+      return request(app)
+        .get("/api/articles/1/comments?p=15.2")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+  });
   describe("POST", () => {
     test("POST 201: responds with the newly added comment", () => {
       const payload = {
@@ -1198,7 +1399,7 @@ describe("/api/comments/:comment_id", () => {
   });
 });
 
-describe("Invalid endpoint returns 404 and message indicating URL was not found", () => {
+describe("Invalid endpoints", () => {
   describe("ALL", () => {
     test("404: If given a not present endpoint, returns a 404 error with appropriate message", () => {
       return request(app)
