@@ -1,17 +1,24 @@
 // endpoint is /api/articles... but feels separate? is there a convention of following original enpoint or is it just what feels right
+const format = require("pg-format");
 const db = require("../db/connection");
-const { checkExists } = require("./utils");
+const { checkExists, getOrder } = require("./utils");
 
-exports.selectCommentsByArticle = (article_id) => {
+exports.selectCommentsByArticle = (
+  article_id,
+  { sort_by, order, limit, p }
+) => {
   return checkExists("articles", "article_id", article_id)
-    .then(() =>
-      db.query(
+    .then(() => getOrder(order))
+    .then((queryOrder) => {
+      const queryStr = format(
         `SELECT * FROM comments
         WHERE article_id=$1
-        ORDER BY created_at DESC`,
-        [article_id]
-      )
-    )
+        ORDER BY %I ${queryOrder}
+        LIMIT 10`,
+        sort_by
+      );
+      return db.query(queryStr, [article_id]);
+    })
     .then(({ rows }) => rows);
 };
 

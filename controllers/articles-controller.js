@@ -1,7 +1,6 @@
 const {
   selectArticleById,
   selectArticles,
-  selectCommentsByArticle,
   updateArticle,
   insertArticle,
 } = require("../models/articles-model");
