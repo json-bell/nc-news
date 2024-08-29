@@ -847,6 +847,101 @@ describe("/api/articles/:article_id/comments", () => {
         });
     });
   });
+  xdescribe("GET limit", () => {
+    test("GET 200: limit defaults to 10", () => {
+      return request(app)
+        .get("/api/articles/1/comments")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(10);
+          comments.forEach((comment) => {
+            expect(comment).toMatchObject({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+              article_id: 3,
+            });
+          });
+        });
+    });
+    test("GET 200: limit query limits number of comments & keeps sorting", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=5")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(5);
+          expect(comments).toBeSortedBy("created_at", { descending: true });
+          comments.forEach((comment) => {
+            expect(comment).toMatchObject({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+              article_id: 3,
+            });
+          });
+        });
+    });
+    test("GET 200: limit shows all comments if limit is bigger than total", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=20")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(13);
+        });
+    });
+    test("GET 200: giving limit='infinity' or 'none' gives all comments", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=infinity")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(11);
+        });
+    });
+    test("GET 200: giving limit=0 gives all comments", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=0")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(11);
+        });
+    });
+    test("GET 400: errors if limit is negative", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=-20")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("GET 400: errors if limit is not a number or keyword", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=bananas")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+  });
+  xdescribe("GET pagination", () => {
+    test("GET 200: page specifies higher pages", () => {
+      return request(app)
+        .get(
+          "/api/articles/1/comments?limit=5&sort_by=comment_id&p=2&order=asc"
+        )
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments.length).toBe(5);
+          expect(comments).toBeSortedBy("comment_id");
+          comments.forEach((comment) =>
+            expect([6, 7, 8, 9, 10].includes(comment.comment_id)).toEqual(true)
+          );
+        });
+    });
+  });
   describe("POST", () => {
     test("POST 201: responds with the newly added comment", () => {
       const payload = {
