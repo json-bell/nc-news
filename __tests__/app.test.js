@@ -401,8 +401,9 @@ describe("/api/articles", () => {
       request(app)
         .get("/api/articles?author=rogersop&topic=mitch")
         .expect(200)
-        .then(({ body: { articles } }) => {
+        .then(({ body: { articles, total_count } }) => {
           expect(articles.length).toBe(2);
+          expect(total_count).toBe(2);
           articles.forEach((article) =>
             expect(article).toMatchObject({
               author: "rogersop",
@@ -410,7 +411,6 @@ describe("/api/articles", () => {
             })
           );
         }));
-    // mitch & rogersop: 2
   });
   describe("GET limit", () => {
     test("GET 200: limit query limits number of articles", () =>
