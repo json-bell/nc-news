@@ -22,7 +22,11 @@ exports.checkExists = (table, column, value) => {
 exports.getOrder = (order) => {
   if (order.toLowerCase() === "asc") return Promise.resolve("ASC");
   if (order.toLowerCase() === "desc") return Promise.resolve("DESC");
-  return Promise.reject({ msg: "Bad request", code: 400 });
+  return Promise.reject({
+    msg: "Bad request",
+    code: 400,
+    details: "Invalid order query",
+  });
 };
 
 exports.getPageString = (limitStr, pageStr) => {
