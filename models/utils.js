@@ -69,6 +69,5 @@ exports.getFilters = (potentialFilters) => {
         ({ filteredColumn, value }) => `articles.${filteredColumn} = '${value}'`
       )
       .join(" AND ");
-  console.log(filterStr);
   return Promise.all([filterStr, Promise.all(filterValidityPromises)]);
 };

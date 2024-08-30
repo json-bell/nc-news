@@ -23,24 +23,6 @@ exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
     getFilters(potentialFilters),
   ])
     .then(([queryOrder, pageString, [filterStr]]) => {
-      // const queryValidityCheckProms = [];
-      const queryParams = [];
-      // const filteredColumns = [];
-
-      // filters.forEach(({ value, column, table, filteredColumn }) => {
-      //   if (value !== undefined) {
-      //     queryValidityCheckProms.push(checkExists(table, column, value));
-      //     queryParams.push(value);
-      //     filteredColumns.push([filteredColumn]);
-      //   }
-      // });
-      // let filterStr =
-      //   filteredColumns.length === 0
-      //     ? ``
-      //     : `WHERE ` +
-      //       filteredColumns
-      //         .map((key, index) => `articles.${key} = $${index + 1}`)
-      //         .join(" AND ");
       const queryStr = format(
         `SELECT
             articles.author,
@@ -62,29 +44,22 @@ exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
         ${pageString};`,
         sort_by
       );
-      const total_count = db.query(
+      const articlesQuery = db.query(queryStr);
+      const countQuery = db.query(
         `SELECT COUNT(*)
         FROM articles
-        ${filterStr}`,
-        queryParams
+        ${filterStr}`
       );
-      return Promise.all([
-        queryStr,
-        queryParams,
-        total_count,
-        // ...queryValidityCheckProms,
-      ]);
+      return Promise.all([articlesQuery, countQuery]);
     })
     .then(
       ([
-        queryStr,
-        queryParams,
+        { rows: articles },
         {
           rows: [{ count }],
         },
-      ]) => Promise.all([db.query(queryStr, queryParams), Number(count)])
-    )
-    .then(([{ rows }, total_count]) => [rows, total_count]);
+      ]) => [articles, Number(count)]
+    );
 };
 
 exports.insertArticle = (author, title, body, topic, article_img_url) => {
