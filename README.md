@@ -16,7 +16,7 @@ The database is PostgreSQL, queried using node-postgres from requests made with 
 
 With this repo you can connect locally to the database and run the tests:
 
-### _Set-up_
+### _Common set-up_
 
 First, clone the repository locally:
 
