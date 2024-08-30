@@ -33,22 +33,20 @@ exports.getPageString = (limitStr, pageStr) => {
   if (["0", "infinity", "none"].includes(limitStr)) return "";
   const limit = Number(limitStr);
   const page = Number(pageStr);
+  const errorObj = { msg: "Bad request", code: 400 };
   if (!Number.isInteger(limit))
     return Promise.reject({
-      msg: "Bad request",
-      code: 400,
+      ...errorObj,
       details: "Invalid limit: must be a whole number",
     });
   if (!Number.isInteger(page))
     return Promise.reject({
-      msg: "Bad request",
-      code: 400,
+      ...errorObj,
       details: "Invalid page: must be an integer",
     });
   if (limit < 0) {
     return Promise.reject({
-      msg: "Bad request",
-      code: 400,
+      ...errorObj,
       details: "Limit must be non-negative",
     });
   }
