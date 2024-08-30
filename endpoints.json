@@ -57,7 +57,8 @@
           "votes": 0,
           "comment_count": 6
         }
-      ]
+      ],
+      "total_count": 23
     }
   },
   "POST /api/articles": {

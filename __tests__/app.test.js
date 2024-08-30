@@ -225,6 +225,18 @@ describe("/api/articles", () => {
         .expect(404)
         .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
     });
+    test("GET 200: response includes a total_count that counts number of articles", () => {
+      return request(app)
+        .get("/api/articles?limit=3&p=2")
+        .expect(200)
+        .then(({ body: { total_count } }) => expect(total_count).toBe(13));
+    });
+    test("GET 200: total_count considers filters", () => {
+      return request(app)
+        .get("/api/articles?limit=5&p=1&topic=mitch")
+        .expect(200)
+        .then(({ body: { total_count } }) => expect(total_count).toBe(12));
+    });
   });
   describe("GET limit", () => {
     test("GET 200: limit query limits number of articles", () => {
