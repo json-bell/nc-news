@@ -121,6 +121,86 @@ describe("/api/users", () => {
         });
     });
   });
+  describe("POST", () => {
+    test("POST 201: responds with new user", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          username: "json-bell",
+          name: "Jason Bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(201)
+        .then(({ body: { user } }) =>
+          expect(user).toMatchObject({
+            username: "json-bell",
+            name: "Jason Bell",
+            avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+          })
+        ));
+    test("POST 201: adds user to database", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          username: "json-bell",
+          name: "Jason Bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(201)
+        .then(() => request(app).get("/api/users").expect(200))
+        .then(({ body: { users } }) =>
+          expect(
+            users.find((user) => user.username === "json-bell")
+          ).toMatchObject({
+            username: "json-bell",
+            name: "Jason Bell",
+            avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+          })
+        ));
+    test("POST 400: if no username given", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          name: "Jason Bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(400)
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Missing input",
+          })
+        ));
+    test("POST 400: if no name given", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          username: "json-bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(400)
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Missing input",
+          })
+        ));
+    test("POST 400: if username already taken", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          username: "lurker",
+          name: "Jason Bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(400)
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Duplicate key",
+          })
+        ));
+  });
 });
 
 describe("/api/users/:username", () => {
