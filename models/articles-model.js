@@ -8,16 +8,37 @@ exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
       const queryValidityCheckProms = [];
       const queryParams = [];
       const filterParams = [];
-      if (topic !== undefined) {
-        queryValidityCheckProms.push(checkExists("topics", "slug", topic));
-        queryParams.push(topic);
-        filterParams.push(["topic"]);
-      }
-      if (author !== undefined) {
-        queryValidityCheckProms.push(checkExists("users", "username", author));
-        queryParams.push(author);
-        filterParams.push(["author"]);
-      }
+      const filters = [
+        {
+          value: topic,
+          column: "slug",
+          table: "topics",
+          filterColumn: "topic",
+        },
+        {
+          value: author,
+          column: "username",
+          table: "users",
+          filterColumn: "author",
+        },
+      ];
+      filters.forEach(({ value, column, table, filterColumn }) => {
+        if (value !== undefined) {
+          queryValidityCheckProms.push(checkExists(table, column, value));
+          queryParams.push(value);
+          filterParams.push([filterColumn]);
+        }
+      });
+      // if (topic !== undefined) {
+      //   queryValidityCheckProms.push(checkExists("topics", "slug", topic));
+      //   queryParams.push(topic);
+      //   filterParams.push(["topic"]);
+      // }
+      // if (author !== undefined) {
+      //   queryValidityCheckProms.push(checkExists("users", "username", author));
+      //   queryParams.push(author);
+      //   filterParams.push(["author"]);
+      // }
       let filterStr =
         filterParams.length === 0
           ? ``
