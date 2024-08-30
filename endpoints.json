@@ -9,6 +9,18 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "POST /api/topics": {
+    "description": "adds a topic to the database, serving new topic",
+    "queries": [],
+    "examplePayload": {
+      "slug": "turtles",
+      "description": "turtles are pretty cool"
+    },
+    "exampleResponse": {
+      "slug": "turtles",
+      "description": "turtles are pretty cool"
+    }
+  },
   "GET /api/users": {
     "description": "serves an array of all users",
     "queries": [],
