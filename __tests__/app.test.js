@@ -40,6 +40,68 @@ describe("/api/topics", () => {
         });
     });
   });
+  describe("POST", () => {
+    test("POST 201: responds with new topic", () => {
+      return request(app)
+        .post("/api/topics")
+        .send({ slug: "turtles", description: "turtles are pretty awesome" })
+        .expect(201)
+        .then(({ body: { topic } }) =>
+          expect(topic).toMatchObject({
+            slug: "turtles",
+            description: "turtles are pretty awesome",
+          })
+        );
+    });
+    test("POST 201: adds new topic to database", () => {
+      return request(app)
+        .post("/api/topics")
+        .send({ slug: "turtles", description: "turtles are pretty awesome" })
+        .expect(201)
+        .then(() => request(app).get("/api/topics").expect(200))
+        .then(({ body: { topics } }) => {
+          expect(
+            topics.find((topic) => topic.slug === "turtles")
+          ).toMatchObject({
+            slug: "turtles",
+            description: "turtles are pretty awesome",
+          });
+        });
+    });
+    test("POST 400: if topic already exists, doesn't modify previous topic", () => {
+      return request(app)
+        .post("/api/topics")
+        .send({
+          slug: "mitch",
+          description:
+            "I just want to include mitch again because he's so great",
+        })
+        .expect(400)
+        .then(() => request(app).get("/api/topics").expect(200))
+        .then(({ body: { topics } }) => {
+          expect(topics.find((topic) => topic.slug === "mitch")).toMatchObject({
+            slug: "mitch",
+            description: "The man, the Mitch, the legend",
+          });
+        });
+    });
+    test("POST 400: if payload doesn't contain topic", () => {
+      return request(app)
+        .post("/api/topics")
+        .send({ not_topic: "bugs", description: "ahh maybe there are no bugs" })
+        .expect(400)
+        .then(({ body: { msg } }) => expect(msg).toBe("Bad request"));
+    });
+    test("POST 200: if payload doesn't contain topic, description defaults to topic", () => {
+      return request(app)
+        .post("/api/topics")
+        .send({ slug: "bugs" })
+        .expect(201)
+        .then(({ body: { topic } }) =>
+          expect(topic).toMatchObject({ slug: "bugs", description: "bugs" })
+        );
+    });
+  });
 });
 
 describe("/api/users", () => {
