@@ -2,7 +2,9 @@
 
 ## Hosted version
 
-You can access the API [here](https://nc-news-e223.onrender.com/api/), hosted with Supabase and Render.
+You can access the API <a href="https://nc-news-e223.onrender.com/api/" target="_blank">here</a>
+, hosted with Supabase and Render. The `/api` endpoint responds with a list of available endpoints.  
+ _(It may take a minute to load, as Render will spin the instance down after inactivity.)_
 
 ## The project
 
