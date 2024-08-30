@@ -8,7 +8,7 @@ You can access the API <a href="https://nc-news-e223.onrender.com/api/" target="
 
 ## The project
 
-This is the back-end architecture for a news app, composed of articles, comments, users and topics.
+This is the back-end architecture for a news app, allowing acces to databases containing articles, comments, users and topics.
 
 The database is PostgreSQL, queried using node-postgres from requests made with Express.js.
 
@@ -16,7 +16,7 @@ The database is PostgreSQL, queried using node-postgres from requests made with 
 
 With this repo you can connect locally to the database and run the tests:
 
-### _Set-up_
+### _Common set-up_
 
 First, clone the repository locally:
 
