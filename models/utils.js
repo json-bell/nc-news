@@ -22,17 +22,35 @@ exports.checkExists = (table, column, value) => {
 exports.getOrder = (order) => {
   if (order.toLowerCase() === "asc") return Promise.resolve("ASC");
   if (order.toLowerCase() === "desc") return Promise.resolve("DESC");
-  return Promise.reject({ msg: "Bad request", code: 400 });
+  return Promise.reject({
+    msg: "Bad request",
+    code: 400,
+    details: "Invalid order query",
+  });
 };
 
 exports.getPageString = (limitStr, pageStr) => {
   if (["0", "infinity", "none"].includes(limitStr)) return "";
   const limit = Number(limitStr);
   const page = Number(pageStr);
-  if (!Number.isInteger(limit) || !Number.isInteger(page))
-    return Promise.reject({ msg: "Bad request", code: 400 });
+  if (!Number.isInteger(limit))
+    return Promise.reject({
+      msg: "Bad request",
+      code: 400,
+      details: "Invalid limit: must be a whole number",
+    });
+  if (!Number.isInteger(page))
+    return Promise.reject({
+      msg: "Bad request",
+      code: 400,
+      details: "Invalid page: must be an integer",
+    });
   if (limit < 0) {
-    return Promise.reject({ msg: "Bad request", code: 400 });
+    return Promise.reject({
+      msg: "Bad request",
+      code: 400,
+      details: "Limit must be non-negative",
+    });
   }
   if (page <= 0) return `LIMIT 0`;
   return `LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
