@@ -157,9 +157,49 @@ describe("/api/users", () => {
             avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
           })
         ));
-    test.todo("POST 400: if no username given");
-    test.todo("POST 400: if username already taken");
-    test.todo("POST 400: if no name given");
+    test("POST 400: if no username given", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          name: "Jason Bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(400)
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Missing input",
+          })
+        ));
+    test("POST 400: if no name given", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          username: "json-bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(400)
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Missing input",
+          })
+        ));
+    test("POST 400: if username already taken", () =>
+      request(app)
+        .post("/api/users")
+        .send({
+          username: "lurker",
+          name: "Jason Bell",
+          avatar_url: "https://vignette1.wikia.nocookie.net/mrmen/images/",
+        })
+        .expect(400)
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Duplicate key",
+          })
+        ));
   });
 });
 
