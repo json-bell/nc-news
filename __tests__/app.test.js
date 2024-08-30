@@ -244,12 +244,12 @@ describe("/api/articles", () => {
       request(app)
         .get("/api/articles?order=not-an-order")
         .expect(400)
-        .then(({ body }) => {
+        .then(({ body }) =>
           expect(body).toMatchObject({
             msg: "Bad request",
             details: "Invalid order query",
-          });
-        }));
+          })
+        ));
     test("GET 400: invalid column name to sort by", () =>
       request(app)
         .get("/api/articles?sort_by=not-a-column")
@@ -346,16 +346,22 @@ describe("/api/articles", () => {
       request(app)
         .get("/api/articles?limit=-20")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Limit must be non-negative",
+          })
+        ));
     test("GET 400: errors if limit is not a number or keyword", () =>
       request(app)
         .get("/api/articles?limit=bananas")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Invalid limit: must be a whole number",
+          })
+        ));
     test("GET 200: limit is compatible with sort and defaults to page 1", () =>
       request(app)
         .get("/api/articles?limit=5&sort_by=article_id&order=asc")
@@ -409,16 +415,24 @@ describe("/api/articles", () => {
       request(app)
         .get("/api/articles?p=15.2")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            code: 400,
+            details: "Invalid page: must be an integer",
+          })
+        ));
     test("GET 400: errors if page query is not a number", () =>
       request(app)
         .get("/api/articles?p=15.2")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            code: 400,
+            details: "Invalid page: must be an integer",
+          })
+        ));
   });
   describe("POST", () => {
     test("POST 201: responds with the newly added article, generating other properies", () => {
@@ -949,12 +963,12 @@ describe("/api/articles/:article_id/comments", () => {
       request(app)
         .get("/api/articles/1/comments?order=not-an-order")
         .expect(400)
-        .then(({ body }) => {
+        .then(({ body }) =>
           expect(body).toMatchObject({
             msg: "Bad request",
             details: "Invalid order query",
-          });
-        }));
+          })
+        ));
     test("GET 400: invalid column name to sort by", () =>
       request(app)
         .get("/api/articles/1/comments?sort_by=not-a-column")
@@ -1025,16 +1039,22 @@ describe("/api/articles/:article_id/comments", () => {
       request(app)
         .get("/api/articles/1/comments?limit=-20")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Limit must be non-negative",
+          });
         }));
     test("GET 400: errors if limit is not a number or keyword", () =>
       request(app)
         .get("/api/articles/1/comments?limit=bananas")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Invalid limit: must be a whole number",
+          })
+        ));
   });
   describe("GET pagination", () => {
     test("GET 200: page specifies higher pages", () =>
@@ -1079,16 +1099,24 @@ describe("/api/articles/:article_id/comments", () => {
       request(app)
         .get("/api/articles/1/comments?p=15.2")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            code: 400,
+            details: "Invalid page: must be an integer",
+          })
+        ));
     test("GET 400: errors if page query is not a number", () =>
       request(app)
         .get("/api/articles/1/comments?p=15.2")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            code: 400,
+            details: "Invalid page: must be an integer",
+          })
+        ));
   });
   describe("POST", () => {
     test("POST 201: responds with the newly added comment", () => {
