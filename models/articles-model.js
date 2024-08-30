@@ -1,69 +1,64 @@
 const db = require("../db/connection");
 const format = require("pg-format");
-const { checkExists, getOrder, getPageString } = require("./utils");
+const { checkExists, getOrder, getPageString, getFilters } = require("./utils");
 
 exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
-  return Promise.all([getOrder(order), getPageString(limit, p)])
-    .then(([queryOrder, pageString]) => {
-      const queryValidityCheckProms = [];
+  const potentialFilters = [
+    {
+      value: topic,
+      column: "slug",
+      table: "topics",
+      filteredColumn: "topic",
+    },
+    {
+      value: author,
+      column: "username",
+      table: "users",
+      filteredColumn: "author",
+    },
+  ];
+  return Promise.all([
+    getOrder(order),
+    getPageString(limit, p),
+    getFilters(potentialFilters),
+  ])
+    .then(([queryOrder, pageString, [filterStr]]) => {
+      // const queryValidityCheckProms = [];
       const queryParams = [];
-      const filterParams = [];
-      const filters = [
-        {
-          value: topic,
-          column: "slug",
-          table: "topics",
-          filterColumn: "topic",
-        },
-        {
-          value: author,
-          column: "username",
-          table: "users",
-          filterColumn: "author",
-        },
-      ];
-      filters.forEach(({ value, column, table, filterColumn }) => {
-        if (value !== undefined) {
-          queryValidityCheckProms.push(checkExists(table, column, value));
-          queryParams.push(value);
-          filterParams.push([filterColumn]);
-        }
-      });
-      // if (topic !== undefined) {
-      //   queryValidityCheckProms.push(checkExists("topics", "slug", topic));
-      //   queryParams.push(topic);
-      //   filterParams.push(["topic"]);
-      // }
-      // if (author !== undefined) {
-      //   queryValidityCheckProms.push(checkExists("users", "username", author));
-      //   queryParams.push(author);
-      //   filterParams.push(["author"]);
-      // }
-      let filterStr =
-        filterParams.length === 0
-          ? ``
-          : `WHERE ` +
-            filterParams
-              .map((key, index) => `articles.${key} = $${index + 1}`)
-              .join(" AND ");
+      // const filteredColumns = [];
+
+      // filters.forEach(({ value, column, table, filteredColumn }) => {
+      //   if (value !== undefined) {
+      //     queryValidityCheckProms.push(checkExists(table, column, value));
+      //     queryParams.push(value);
+      //     filteredColumns.push([filteredColumn]);
+      //   }
+      // });
+      // let filterStr =
+      //   filteredColumns.length === 0
+      //     ? ``
+      //     : `WHERE ` +
+      //       filteredColumns
+      //         .map((key, index) => `articles.${key} = $${index + 1}`)
+      //         .join(" AND ");
       const queryStr = format(
         `SELECT
-          articles.author,
-          articles.title,
-          articles.article_id,
-          articles.topic,
-          articles.created_at,
-          articles.votes,
-          articles.article_img_url,
-          COUNT(comments.comment_id)::INT AS comment_count
+            articles.author,
+            articles.title,
+            articles.article_id,
+            articles.topic,
+            articles.created_at,
+            articles.votes,
+            articles.article_img_url,
+            COUNT(comments.comment_id)::INT AS comment_count
         FROM articles
         LEFT JOIN comments
         ON articles.article_id = comments.article_id
         ${filterStr}
         GROUP BY
-          articles.article_id
+            articles.article_id
         ORDER BY
-          articles.%I ${queryOrder}
+            articles.%I ${queryOrder}
         ${pageString};`,
         sort_by
       );
@@ -77,7 +72,7 @@ exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
         queryStr,
         queryParams,
         total_count,
-        ...queryValidityCheckProms,
+        // ...queryValidityCheckProms,
       ]);
     })
     .then(
