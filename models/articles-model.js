@@ -32,10 +32,29 @@ exports.selectArticles = ({ sort_by, order, topic, limit, p }) => {
         ${pageString};`,
         sort_by
       );
-      return Promise.all([queryStr, queryParams, ...queryValidityCheckProms]);
+      const total_count = db.query(
+        `SELECT COUNT(*)
+        FROM articles
+        ${topic === undefined ? `` : `WHERE articles.topic = $1`}`,
+        queryParams
+      );
+      return Promise.all([
+        queryStr,
+        queryParams,
+        total_count,
+        ...queryValidityCheckProms,
+      ]);
     })
-    .then(([queryStr, queryParams]) => db.query(queryStr, queryParams))
-    .then(({ rows }) => rows);
+    .then(
+      ([
+        queryStr,
+        queryParams,
+        {
+          rows: [{ count }],
+        },
+      ]) => Promise.all([db.query(queryStr, queryParams), Number(count)])
+    )
+    .then(([{ rows }, total_count]) => [rows, total_count]);
 };
 
 exports.insertArticle = (author, title, body, topic, article_img_url) => {
