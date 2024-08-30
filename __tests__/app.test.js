@@ -225,7 +225,7 @@ describe("/api/users/:username", () => {
         .then(({ body }) =>
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           })
         ));
   });
@@ -363,23 +363,54 @@ describe("/api/articles", () => {
         .then(({ body }) =>
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           })
         ));
-    test("GET 200: response includes a total_count that counts number of articles", () =>
+  });
+  describe("GET author filter", () => {
+    test("GET 200: filters author if given a query", () =>
       request(app)
-        .get("/api/articles?limit=3&p=2")
+        .get("/api/articles?author=icellusedkars")
         .expect(200)
-        .then(({ body: { total_count } }) => {
-          expect(total_count).toBe(13);
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(6);
+          articles.forEach((article) => {
+            expect(article.author).toBe("icellusedkars");
+          });
         }));
-    test("GET 200: total_count considers filters", () =>
+    test("GET 200: returns an empty array for a valid author with no associated articles", () =>
       request(app)
-        .get("/api/articles?limit=5&p=1&topic=mitch")
+        .get("/api/articles?author=lurker")
         .expect(200)
-        .then(({ body: { total_count } }) => {
-          expect(total_count).toBe(12);
+        .then(({ body: { articles } }) => {
+          expect(articles).toEqual([]);
         }));
+    test("GET 404: if given author that isn't in database responds with a 404", () =>
+      request(app)
+        .get("/api/articles?author=banana")
+        .expect(404)
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.stringMatching(
+              /username .+ was not found in users/
+            ),
+          })
+        ));
+    test("GET 200: author and topic filters are compatible", () =>
+      request(app)
+        .get("/api/articles?author=rogersop&topic=mitch")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(2);
+          articles.forEach((article) =>
+            expect(article).toMatchObject({
+              author: "rogersop",
+              topic: "mitch",
+            })
+          );
+        }));
+    // mitch & rogersop: 2
   });
   describe("GET limit", () => {
     test("GET 200: limit query limits number of articles", () =>
@@ -452,6 +483,20 @@ describe("/api/articles", () => {
           articles.forEach((article) =>
             expect([1, 2, 3, 4, 5].includes(article.article_id)).toEqual(true)
           );
+        }));
+    test("GET 200: response includes a total_count that counts number of articles", () =>
+      request(app)
+        .get("/api/articles?limit=3&p=2")
+        .expect(200)
+        .then(({ body: { total_count } }) => {
+          expect(total_count).toBe(13);
+        }));
+    test("GET 200: total_count considers filters", () =>
+      request(app)
+        .get("/api/articles?limit=5&p=1&topic=mitch")
+        .expect(200)
+        .then(({ body: { total_count } }) => {
+          expect(total_count).toBe(12);
         }));
   });
   describe("GET pagination", () => {
@@ -673,7 +718,7 @@ describe("/api/articles/:article_id", () => {
         .then(({ body }) =>
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           })
         ));
     test("GET 400: returns Bad Request message if id is invalid", () =>
@@ -781,7 +826,7 @@ describe("/api/articles/:article_id", () => {
         .then(({ body }) =>
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           })
         ));
     test("PATCH 400: responds bad request if id is invalid", () =>
@@ -896,7 +941,7 @@ describe("/api/articles/:article_id", () => {
         .then(({ body }) => {
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           });
         }));
     test("PATCH 200: patch can take multiple of the keys of body, title, topic and inc_value", () =>
@@ -934,7 +979,7 @@ describe("/api/articles/:article_id", () => {
         .then(({ body }) => {
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           });
         }));
     test("DELETE 400: invalid article_id", () =>
@@ -987,7 +1032,7 @@ describe("/api/articles/:article_id/comments", () => {
         .then(({ body }) => {
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           });
         }));
     test("GET 400: returns Bad Request message if article id is invalid", () =>
@@ -1329,7 +1374,7 @@ describe("/api/comments/:comment_id", () => {
         .then(({ body }) => {
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           });
         }));
     test("GET 400: returns Bad Request message if id is invalid", () =>
@@ -1420,7 +1465,7 @@ describe("/api/comments/:comment_id", () => {
         .then(({ body }) => {
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           });
         });
     });
@@ -1532,7 +1577,7 @@ describe("/api/comments/:comment_id", () => {
         .then(({ body }) =>
           expect(body).toMatchObject({
             msg: "Resource not found",
-            details: expect.stringMatching(/was not found in/),
+            details: expect.stringMatching(/.+ '.+' was not found in .+/),
           })
         );
     });

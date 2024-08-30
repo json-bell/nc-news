@@ -13,7 +13,7 @@ exports.checkExists = (table, column, value) => {
       return Promise.reject({
         code: 404,
         msg: "Resource not found",
-        details: `${value} was not found in ${column}`,
+        details: `${column} '${value}' was not found in ${table}`,
       });
     return { rows };
   });

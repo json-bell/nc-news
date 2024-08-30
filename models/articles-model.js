@@ -2,15 +2,29 @@ const db = require("../db/connection");
 const format = require("pg-format");
 const { checkExists, getOrder, getPageString } = require("./utils");
 
-exports.selectArticles = ({ sort_by, order, topic, limit, p }) => {
+exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
   return Promise.all([getOrder(order), getPageString(limit, p)])
     .then(([queryOrder, pageString]) => {
       const queryValidityCheckProms = [];
       const queryParams = [];
+      const filterParams = [];
       if (topic !== undefined) {
         queryValidityCheckProms.push(checkExists("topics", "slug", topic));
         queryParams.push(topic);
+        filterParams.push(["topic"]);
       }
+      if (author !== undefined) {
+        queryValidityCheckProms.push(checkExists("users", "username", author));
+        queryParams.push(author);
+        filterParams.push(["author"]);
+      }
+      let filterStr =
+        filterParams.length === 0
+          ? ``
+          : `WHERE ` +
+            filterParams
+              .map((key, index) => `articles.${key} = $${index + 1}`)
+              .join(" AND ");
       const queryStr = format(
         `SELECT
           articles.author,
@@ -24,7 +38,7 @@ exports.selectArticles = ({ sort_by, order, topic, limit, p }) => {
         FROM articles
         LEFT JOIN comments
         ON articles.article_id = comments.article_id
-        ${topic === undefined ? `` : `WHERE articles.topic = $1`}
+        ${filterStr}
         GROUP BY
           articles.article_id
         ORDER BY
@@ -35,7 +49,7 @@ exports.selectArticles = ({ sort_by, order, topic, limit, p }) => {
       const total_count = db.query(
         `SELECT COUNT(*)
         FROM articles
-        ${topic === undefined ? `` : `WHERE articles.topic = $1`}`,
+        ${filterStr}`,
         queryParams
       );
       return Promise.all([
