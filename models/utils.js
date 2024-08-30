@@ -13,7 +13,7 @@ exports.checkExists = (table, column, value) => {
       return Promise.reject({
         code: 404,
         msg: "Resource not found",
-        details: `${value} was not found in ${column}`,
+        details: `${column} '${value}' was not found in ${table}`,
       });
     return { rows };
   });
@@ -52,4 +52,22 @@ exports.getPageString = (limitStr, pageStr) => {
   }
   if (page <= 0) return `LIMIT 0`;
   return `LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+};
+
+exports.getFilters = (potentialFilters) => {
+  const filters = potentialFilters.filter(({ value }) => value !== undefined);
+  if (filters.length === 0) return [""];
+
+  const filterValidityPromises = filters.map(({ table, column, value }) =>
+    this.checkExists(table, column, value)
+  );
+
+  const filterStr =
+    " WHERE " +
+    filters
+      .map(
+        ({ filteredColumn, value }) => `articles.${filteredColumn} = '${value}'`
+      )
+      .join(" AND ");
+  return Promise.all([filterStr, Promise.all(filterValidityPromises)]);
 };

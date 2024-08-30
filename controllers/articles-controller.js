@@ -11,10 +11,11 @@ exports.getArticles = (req, res, next) => {
     sort_by = "created_at",
     order = "desc",
     topic,
+    author,
     limit = 10,
     p = 1,
   } = req.query;
-  selectArticles({ sort_by, order, topic, limit, p })
+  selectArticles({ sort_by, order, topic, author, limit, p })
     .then(([articles, total_count]) => {
       res.status(200).send({ articles, total_count });
     })

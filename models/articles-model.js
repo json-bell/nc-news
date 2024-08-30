@@ -1,60 +1,65 @@
 const db = require("../db/connection");
 const format = require("pg-format");
-const { checkExists, getOrder, getPageString } = require("./utils");
+const { checkExists, getOrder, getPageString, getFilters } = require("./utils");
 
-exports.selectArticles = ({ sort_by, order, topic, limit, p }) => {
-  return Promise.all([getOrder(order), getPageString(limit, p)])
-    .then(([queryOrder, pageString]) => {
-      const queryValidityCheckProms = [];
-      const queryParams = [];
-      if (topic !== undefined) {
-        queryValidityCheckProms.push(checkExists("topics", "slug", topic));
-        queryParams.push(topic);
-      }
+exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
+  const potentialFilters = [
+    {
+      value: topic,
+      column: "slug",
+      table: "topics",
+      filteredColumn: "topic",
+    },
+    {
+      value: author,
+      column: "username",
+      table: "users",
+      filteredColumn: "author",
+    },
+  ];
+  return Promise.all([
+    getOrder(order),
+    getPageString(limit, p),
+    getFilters(potentialFilters),
+  ])
+    .then(([queryOrder, pageString, [filterStr]]) => {
       const queryStr = format(
         `SELECT
-          articles.author,
-          articles.title,
-          articles.article_id,
-          articles.topic,
-          articles.created_at,
-          articles.votes,
-          articles.article_img_url,
-          COUNT(comments.comment_id)::INT AS comment_count
+            articles.author,
+            articles.title,
+            articles.article_id,
+            articles.topic,
+            articles.created_at,
+            articles.votes,
+            articles.article_img_url,
+            COUNT(comments.comment_id)::INT AS comment_count
         FROM articles
         LEFT JOIN comments
         ON articles.article_id = comments.article_id
-        ${topic === undefined ? `` : `WHERE articles.topic = $1`}
+        ${filterStr}
         GROUP BY
-          articles.article_id
+            articles.article_id
         ORDER BY
-          articles.%I ${queryOrder}
+            articles.%I ${queryOrder}
         ${pageString};`,
         sort_by
       );
-      const total_count = db.query(
+      const articlesQuery = db.query(queryStr);
+      const countQuery = db.query(
         `SELECT COUNT(*)
         FROM articles
-        ${topic === undefined ? `` : `WHERE articles.topic = $1`}`,
-        queryParams
+        ${filterStr}`
       );
-      return Promise.all([
-        queryStr,
-        queryParams,
-        total_count,
-        ...queryValidityCheckProms,
-      ]);
+      return Promise.all([articlesQuery, countQuery]);
     })
     .then(
       ([
-        queryStr,
-        queryParams,
+        { rows: articles },
         {
           rows: [{ count }],
         },
-      ]) => Promise.all([db.query(queryStr, queryParams), Number(count)])
-    )
-    .then(([{ rows }, total_count]) => [rows, total_count]);
+      ]) => [articles, Number(count)]
+    );
 };
 
 exports.insertArticle = (author, title, body, topic, article_img_url) => {
