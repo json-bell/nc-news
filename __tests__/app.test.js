@@ -138,12 +138,16 @@ describe("/api/users/:username", () => {
           })
         );
     });
-    test("GET 404: responds with a 404 if the slug is not present in the database", () => {
-      return request(app)
+    test("GET 404: responds with a 404 if the slug is not present in the database", () =>
+      request(app)
         .get("/api/users/banana")
         .expect(404)
-        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
-    });
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          })
+        ));
   });
 });
 
@@ -273,9 +277,12 @@ describe("/api/articles", () => {
       request(app)
         .get("/api/articles?topic=bananas")
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          })
+        ));
     test("GET 200: response includes a total_count that counts number of articles", () =>
       request(app)
         .get("/api/articles?limit=3&p=2")
@@ -566,9 +573,12 @@ describe("/api/articles/:article_id", () => {
       request(app)
         .get("/api/articles/8080")
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          })
+        ));
     test("GET 400: returns Bad Request message if id is invalid", () =>
       request(app)
         .get("/api/articles/dog")
@@ -671,9 +681,12 @@ describe("/api/articles/:article_id", () => {
         .patch("/api/articles/8000")
         .send({ inc_votes: 6 })
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
-        }));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          })
+        ));
     test("PATCH 400: responds bad request if id is invalid", () =>
       request(app)
         .patch("/api/articles/banana")
@@ -783,8 +796,11 @@ describe("/api/articles/:article_id", () => {
         .patch("/api/articles/4")
         .send({ topic: "not-a-topic" })
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          });
         }));
     test("PATCH 200: patch can take multiple of the keys of body, title, topic and inc_value", () =>
       request(app)
@@ -818,8 +834,11 @@ describe("/api/articles/:article_id", () => {
       request(app)
         .delete("/api/articles/8080")
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          });
         }));
     test("DELETE 400: invalid article_id", () =>
       request(app)
@@ -868,8 +887,11 @@ describe("/api/articles/:article_id/comments", () => {
       request(app)
         .get("/api/articles/8080/comments")
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          });
         }));
     test("GET 400: returns Bad Request message if article id is invalid", () =>
       request(app)
@@ -1190,8 +1212,11 @@ describe("/api/comments/:comment_id", () => {
       request(app)
         .get("/api/comments/8080")
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          });
         }));
     test("GET 400: returns Bad Request message if id is invalid", () =>
       request(app)
@@ -1278,8 +1303,11 @@ describe("/api/comments/:comment_id", () => {
         .patch("/api/comments/8000")
         .send({ inc_votes: 6 })
         .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Resource not found");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          });
         });
     });
     test("PATCH 400: responds bad request if id is invalid", () => {
@@ -1387,7 +1415,12 @@ describe("/api/comments/:comment_id", () => {
       return request(app)
         .delete("/api/comments/1002")
         .expect(404)
-        .then(({ body: { msg } }) => expect(msg).toBe("Resource not found"));
+        .then(({ body }) =>
+          expect(body).toMatchObject({
+            msg: "Resource not found",
+            details: expect.any(String),
+          })
+        );
     });
     test("DELETE 400 invalid comment_id", () => {
       return request(app)

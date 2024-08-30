@@ -3,8 +3,17 @@ exports.throwEndpointNotFound = (req, res, next) => {
 };
 
 exports.handleCustomError = (err, req, res, next) => {
-  if (err.code && err.msg)
-    res.status(err.code).send({ msg: err.msg, code: err.code });
+  if (err.code && err.msg && err.details)
+    res.status(err.code).send({
+      msg: err.msg,
+      code: err.code,
+      details: err.details,
+    });
+  else if (err.code && err.msg)
+    res.status(err.code).send({
+      msg: err.msg,
+      code: err.code,
+    });
   else next(err);
 };
 
