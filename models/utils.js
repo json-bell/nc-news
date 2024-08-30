@@ -34,9 +34,17 @@ exports.getPageString = (limitStr, pageStr) => {
   const limit = Number(limitStr);
   const page = Number(pageStr);
   if (!Number.isInteger(limit) || !Number.isInteger(page))
-    return Promise.reject({ msg: "Bad request", code: 400 });
+    return Promise.reject({
+      msg: "Bad request",
+      code: 400,
+      details: "Invalid pagination",
+    });
   if (limit < 0) {
-    return Promise.reject({ msg: "Bad request", code: 400 });
+    return Promise.reject({
+      msg: "Bad request",
+      code: 400,
+      details: "Limit must be non-negative",
+    });
   }
   if (page <= 0) return `LIMIT 0`;
   return `LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
