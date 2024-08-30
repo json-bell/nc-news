@@ -244,8 +244,11 @@ describe("/api/articles", () => {
       request(app)
         .get("/api/articles?order=not-an-order")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Invalid order query",
+          });
         }));
     test("GET 400: invalid column name to sort by", () =>
       request(app)
@@ -946,8 +949,11 @@ describe("/api/articles/:article_id/comments", () => {
       request(app)
         .get("/api/articles/1/comments?order=not-an-order")
         .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
+        .then(({ body }) => {
+          expect(body).toMatchObject({
+            msg: "Bad request",
+            details: "Invalid order query",
+          });
         }));
     test("GET 400: invalid column name to sort by", () =>
       request(app)
