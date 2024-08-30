@@ -39,14 +39,12 @@ exports.getPageString = (limitStr, pageStr) => {
       code: 400,
       details: "Invalid limit: must be a whole number",
     });
-
   if (!Number.isInteger(page))
     return Promise.reject({
       msg: "Bad request",
       code: 400,
       details: "Invalid page: must be an integer",
     });
-
   if (limit < 0) {
     return Promise.reject({
       msg: "Bad request",
