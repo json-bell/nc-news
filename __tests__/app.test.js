@@ -810,6 +810,25 @@ describe("/api/articles/:article_id", () => {
           expect(article).toMatchObject(expectedResponse);
         }));
   });
+  describe("DELETE", () => {
+    test("DELETE 204: deletes an article by its id", () => {
+      return request(app).delete("/api/articles/3").expect(204);
+    });
+    test("DELETE 404: valid id doesn't have an associated article to delete", () =>
+      request(app)
+        .delete("/api/articles/8080")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Resource not found");
+        }));
+    test("DELETE 400: invalid article_id", () =>
+      request(app)
+        .delete("/api/articles/dog")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        }));
+  });
 });
 
 describe("/api/articles/:article_id/comments", () => {

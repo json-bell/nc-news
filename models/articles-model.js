@@ -125,3 +125,9 @@ exports.updateArticle = (article_id, updates) => {
     .then(([queryStr, queryParams]) => db.query(queryStr, queryParams))
     .then(({ rows }) => rows[0]);
 };
+
+exports.removeArticle = (article_id) => {
+  return checkExists("articles", "article_id", article_id).then(() =>
+    db.query("DELETE FROM articles WHERE article_id = $1", [article_id])
+  );
+};
