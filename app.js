@@ -6,11 +6,14 @@ const {
   handleCustomError,
 } = require("./controllers/error-handling-middleware");
 const apiRouter = require("./routes/api-router");
+const cors = require("cors");
 
 //
 
 const app = express();
 module.exports = app;
+
+app.use(cors());
 
 app.use(express.json());
 
