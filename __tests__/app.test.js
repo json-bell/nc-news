@@ -320,6 +320,14 @@ describe("/api/articles", () => {
           expect(articles.length).toBe(10);
           expect(articles).toBeSortedBy("article_id");
         }));
+    test("GET 200: can take comment_count as a sort_by query", () =>
+      request(app)
+        .get("/api/articles?sort_by=comment_count&order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(10);
+          expect(articles).toBeSortedBy("comment_count");
+        }));
     test("GET 400: if order is not valid", () =>
       request(app)
         .get("/api/articles?order=not-an-order")

@@ -40,7 +40,7 @@ exports.selectArticles = ({ sort_by, order, topic, author, limit, p }) => {
         GROUP BY
             articles.article_id
         ORDER BY
-            articles.%I ${queryOrder}
+            ${sort_by === "comment_count" ? "%I" : "articles.%I"} ${queryOrder}
         ${pageString};`,
         sort_by
       );
